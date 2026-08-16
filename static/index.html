@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>InsightFlow AI</title>
+<link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">IF</div><div><b>InsightFlow AI</b><span>Real-data GTM Research</span></div></div>
+    <button class="new" id="newResearch">＋ New research</button>
+    <nav>
+      <button data-tab="overview" class="active">◫ <span>Overview</span></button>
+      <button data-tab="products">▦ <span>Products</span></button>
+      <button data-tab="reviews">◎ <span>Consumer Voice</span></button>
+      <button data-tab="opportunities">◇ <span>Opportunity Map</span></button>
+      <button data-tab="ask">✦ <span>AI Researcher</span></button>
+      <button data-tab="report">▤ <span>Report</span></button>
+    </nav>
+    <div class="sideBottom">
+      <button class="settingsBtn" id="settingsBtn">⚙ API Settings</button>
+      <small>Real data only. No synthetic fallback.</small>
+    </div>
+  </aside>
+  <main>
+    <header>
+      <div><div class="crumb">Research workspace</div><h1 id="title">Start a real-data research</h1><p id="subtitle">输入产品词，系统再去采集真实公开数据。</p></div>
+      <div class="headerActions"><span id="configPill" class="pill warn">API not configured</span><button id="settingsBtn2" class="ghost">Settings</button></div>
+    </header>
+
+    <section id="emptyState" class="empty">
+      <div class="emptyCard">
+        <span class="kicker">REAL DATA EDITION</span><h2>先创建一次真实研究</h2>
+        <p>这版不会自动填充任何 synthetic review。没有 API key 或没有抓到数据时，就明确显示 0。</p>
+        <button id="startBtn" class="primary">Create research →</button>
+      </div>
+    </section>
+
+    <section id="workspace" class="hidden">
+      <div class="statusbar"><div><b id="researchKeyword"></b><span id="researchScope"></span></div><div class="progressWrap"><span id="progressText"></span><div class="progress"><i id="progressBar"></i></div></div></div>
+
+      <section id="tab-overview" class="tab active">
+        <div class="hero"><div><span class="kicker">EVIDENCE FIRST</span><h2 id="heroTitle">Waiting for real data…</h2><p id="heroText"></p></div><button class="dark" data-tabgo="reviews">Inspect evidence →</button></div>
+        <div class="kpis" id="kpis"></div>
+        <div class="grid2">
+          <article class="card"><div class="cardHead"><div><h3>Search demand trend</h3><p>Google Trends · real public signal</p></div></div><div id="trendChart" class="chart"></div></article>
+          <article class="card"><div class="cardHead"><div><h3>Top issue share</h3><p>From collected review/comment text</p></div></div><div id="issueBars" class="bars"></div></article>
+        </div>
+        <div class="grid2">
+          <article class="card"><div class="cardHead"><div><h3>Source coverage</h3><p>Where the evidence came from</p></div></div><div id="sourceRows"></div></article>
+          <article class="card"><div class="cardHead"><div><h3>Top positive drivers</h3><p>What real reviewers actively praise</p></div></div><div id="driverBars" class="bars"></div></article>
+        </div>
+      </section>
+
+      <section id="tab-products" class="tab">
+        <div class="sectionHead"><div><h2>Products & retail signals</h2><p>真实商品结果；不会把 review count 当作销量。</p></div></div>
+        <div class="tableWrap"><table><thead><tr><th>Source</th><th>Market</th><th>Product</th><th>Price</th><th>Rating</th><th>Reviews</th><th>Badge</th><th>Link</th></tr></thead><tbody id="productBody"></tbody></table></div>
+      </section>
+
+      <section id="tab-reviews" class="tab">
+        <div class="sectionHead"><div><h2>Consumer Voice</h2><p>Walmart review 正文 + YouTube 公开评论。YouTube 作者国家不可可靠获得，因此标为 GLOBAL。</p></div><button id="csvQuick" class="ghost">↓ CSV</button></div>
+        <div class="filters"><input id="reviewSearch" placeholder="搜索原文 / issue / driver"/><select id="reviewSource"><option value="">All sources</option></select><select id="reviewMarket"><option value="">All markets</option></select><select id="reviewSent"><option value="">All sentiment</option><option>positive</option><option>neutral</option><option>negative</option></select><select id="reviewIssue"><option value="">All issues</option></select></div>
+        <div class="rowMeta" id="reviewCount"></div>
+        <div class="tableWrap tall"><table><thead><tr><th>Source</th><th>Market</th><th>Rating</th><th>Raw text</th><th>Sentiment</th><th>Issue / driver</th><th>Purchase impact</th><th>Date</th></tr></thead><tbody id="reviewBody"></tbody></table></div>
+      </section>
+
+      <section id="tab-opportunities" class="tab">
+        <div class="sectionHead"><div><h2>Opportunity hypotheses</h2><p>“高关注 + 高购买影响 + benchmark coverage proxy 较弱”才进入下一轮验证；不是直接断言市场空白。</p></div></div>
+        <div class="notice">需要继续通过真实商品规格、供应链、成本、认证、专利和 concept test 验证。</div>
+        <div id="opportunityGrid" class="opps"></div>
+      </section>
+
+      <section id="tab-ask" class="tab">
+        <div class="askLayout"><div class="card"><div class="cardHead"><div><h3>AI Researcher</h3><p id="askMode">Local evidence mode</p></div></div><div id="chat" class="chat"></div><form id="askForm" class="askForm"><textarea id="askInput" placeholder="例如：这个品类最值得验证的痛点是什么？"></textarea><button class="dark">Ask ↗</button></form></div><aside class="card contextCard"><h3>Context</h3><div><span>Research</span><b id="ctxKey">—</b></div><div><span>Real reviews/comments</span><b id="ctxReviewN">—</b></div><div><span>Products</span><b id="ctxProductN">—</b></div><div><span>LLM</span><b id="ctxLlm">—</b></div></aside></div>
+      </section>
+
+      <section id="tab-report" class="tab">
+        <div class="reportHero"><span class="kicker">EXPORT</span><h2>GTM Research Report</h2><p>真正由后端生成 PDF / Word / CSV，不是浏览器打印。</p><div><button id="pdfBtn" class="dark">↓ PDF</button><button id="docxBtn" class="ghost">↓ Word</button><button id="csvBtn" class="ghost">↓ Evidence CSV</button></div></div>
+        <div class="grid2"><article class="card"><h3>Executive summary</h3><div id="reportSummary"></div></article><article class="card"><h3>Data provenance</h3><p>商品、趋势、评论来自你配置的真实数据连接器。系统没有 synthetic review fallback。YouTube comments 标为 GLOBAL。</p></article></div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="researchModal"><div class="modalCard"><div class="modalHead"><div><h2>New real-data research</h2><p>先定义范围，再计算 API 调用量。</p></div><button data-close="researchModal">×</button></div>
+  <label>产品词<input id="keyword" value="10000mAh magnetic power bank"/></label>
+  <label>市场<div class="checks"><label><input type="checkbox" name="market" value="US" checked/> US</label><label><input type="checkbox" name="market" value="AU" checked/> AU</label></div></label>
+  <label>时间<select id="days"><option value="90">90 days</option><option value="180" selected>180 days</option><option value="365">365 days</option></select></label>
+  <label>数据源<div class="checks"><label><input type="checkbox" name="source" value="shopping" checked/> Google Shopping</label><label><input type="checkbox" name="source" value="walmart" checked/> Walmart + Reviews</label><label><input type="checkbox" name="source" value="youtube" checked/> YouTube Search + Comments</label><label><input type="checkbox" name="source" value="trends" checked/> Google Trends</label></div></label>
+  <div class="advanced"><label>Walmart products<input id="wmProducts" type="number" min="1" max="8" value="3"/></label><label>Review pages / product<input id="wmPages" type="number" min="1" max="10" value="2"/></label><label>YouTube videos / market<input id="ytVideos" type="number" min="1" max="8" value="3"/></label><label>Comment pages / video<input id="ytPages" type="number" min="1" max="5" value="1"/></label></div>
+  <div class="callEstimate" id="callEstimate">Estimated SerpApi calls: —</div>
+  <button id="runResearch" class="primary full">Run real-data research</button>
+</div></div>
+
+<div class="modal" id="settingsModal"><div class="modalCard"><div class="modalHead"><div><h2>API Settings</h2><p>Key 只保存在你本机项目目录的 .env 文件。</p></div><button data-close="settingsModal">×</button></div>
+  <label>SerpApi API Key<input id="serpKey" type="password" placeholder="Required for real-data collection"/></label>
+  <div class="divider"></div><h3>Optional LLM (OpenAI-compatible)</h3>
+  <label>Base URL<input id="llmBase" placeholder="例如 https://api.deepseek.com/v1"/></label><label>Model<input id="llmModel" placeholder="模型名"/></label><label>API Key<input id="llmKey" type="password"/></label>
+  <button id="saveSettings" class="primary full">Save settings</button>
+</div></div>
+<div class="toast" id="toast"></div>
+<script src="/app.js"></script>
+</body>
+</html>
