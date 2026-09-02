@@ -9,7 +9,7 @@ DEMO_KEYWORD = '10000mAh magnetic power bank'
 DEMO_MARKETS = ['US', 'AU']
 DEMO_DAYS = 730
 DEMO_SOURCE_KEY = ['curated_public_evidence']
-DEMO_SCHEMA_VERSION = '1.5'
+DEMO_SCHEMA_VERSION = '1.6'
 
 # Every text row below is a concise paraphrase of the linked public source, not a verbatim quote.
 # The purpose of the built-in snapshot is recruiter UX: it lets a reviewer explore a grounded case

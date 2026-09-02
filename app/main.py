@@ -27,7 +27,7 @@ from .demo import seed_portfolio_demo
 ROOT=Path(__file__).resolve().parents[1]
 STATIC=ROOT/'static'
 
-app=FastAPI(title='InsightFlow AI',version='1.5.0')
+app=FastAPI(title='InsightFlow AI',version='1.6.0')
 db.init_db()
 
 
@@ -58,11 +58,12 @@ class ResearchIn(BaseModel):
 
 class AskIn(BaseModel):
     question: str = Field(min_length=2,max_length=1000)
+    language: Literal['en','zh'] = 'en'
 
 
 @app.get('/api/health')
 def health():
-    return {'ok':True,'version':'1.5.0','real_data_only':True,'portfolio_demo':True}
+    return {'ok':True,'version':'1.6.0','real_data_only':True,'portfolio_demo':True,'bilingual_ui':True}
 
 
 @app.get('/api/config')
@@ -311,9 +312,10 @@ def research_ask(rid:int,payload:AskIn):
             'products':products[:40],
             'trend_summary':summary.get('trend_summary'),
         }
-        try:return {'mode':'llm-grounded','answer':ask_llm(payload.question,context)}
-        except Exception as e:return {'mode':'local-fallback','answer':_local_answer(payload.question,summary,reviews,products),'warning':str(e)}
-    return {'mode':'local','answer':_local_answer(payload.question,summary,reviews,products)}
+        prompt = ("请使用简体中文回答，并严格依据提供的 evidence；如果证据不足，请明确说明。\n\n" if payload.language == 'zh' else "Answer in English and stay strictly grounded in the supplied evidence; say explicitly when evidence is insufficient.\n\n") + payload.question
+        try:return {'mode':'llm-grounded','answer':ask_llm(prompt,context)}
+        except Exception as e:return {'mode':'local-fallback','answer':_local_answer(payload.question,summary,reviews,products,payload.language),'warning':str(e)}
+    return {'mode':'local','answer':_local_answer(payload.question,summary,reviews,products,payload.language)}
 
 
 @app.get('/api/research/{rid}/export/{kind}')
@@ -597,8 +599,9 @@ def _summary_delta(current:dict,baseline:dict,current_research:dict,baseline_res
     }
 
 
-def _local_answer(question:str,summary:dict,reviews:list[dict],products:list[dict])->str:
+def _local_answer(question:str,summary:dict,reviews:list[dict],products:list[dict],language:str='en')->str:
     q=question.lower()
+    zh=language=='zh'
     research=summary.get('research') or {}
     demo=(research.get('decision') or {}).get('demo_meta') or {}
     opportunities=summary.get('opportunities') or []
@@ -607,71 +610,76 @@ def _local_answer(question:str,summary:dict,reviews:list[dict],products:list[dic
     if any(k in q for k in ['us and au','us vs au','us/au','美国','澳洲','澳大利亚','market comparison','compare market']):
         mc=summary.get('market_comparison') or {}
         if not mc.get('available'):
-            return ('当前证据不支持 US 与 AU 的消费者偏好比较。\n\n'
-                    f"原因：{mc.get('reason') or 'consumer-voice source coverage is not comparable'}\n\n"
-                    '可以比较两地的商品/零售信号，但不能把 GLOBAL Reddit / YouTube 等消费者声音硬归因到某个国家。这个限制是为了避免制造漂亮但错误的市场结论。')
-        return '当前可比消费者来源：'+', '.join(mc.get('common_sources') or [])+'。\n'+ '\n'.join(
-            f"{m}: n={v.get('sample',0)}; top topics="+', '.join(x['name'] for x in (v.get('top_topics') or [])[:4]) for m,v in (mc.get('markets') or {}).items())
+            reason=mc.get('reason') or 'consumer-voice source coverage is not comparable'
+            if zh:
+                return f'当前证据不支持 US 与 AU 的消费者偏好比较。\n\n原因：{reason}\n\n可以比较两地的商品与搜索信号，但不能把 GLOBAL Reddit / YouTube 等消费者声音硬归因到某个国家。这个限制是为了避免制造漂亮但错误的市场结论。'
+            return f'The current evidence does not support a US-vs-AU consumer-preference comparison.\n\nReason: {reason}\n\nProduct and search signals can still be compared, but GLOBAL Reddit / YouTube voice cannot be reassigned to a country without reliable geography.'
+        lines='\n'.join(f"{m}: n={v.get('sample',0)}; top topics="+', '.join(x['name'] for x in (v.get('top_topics') or [])[:4]) for m,v in (mc.get('markets') or {}).items())
+        return ('当前可比消费者来源：' if zh else 'Comparable consumer sources: ')+', '.join(mc.get('common_sources') or [])+'。\n'+lines
 
     if any(k in q for k in ['weak','弱','不足','confidence','可信','证据质量','evidence quality']):
-        conf=summary.get('evidence_confidence') or {}
-        issues=summary.get('issues') or []
-        low=[x for x in issues if x.get('confidence')=='Low'][:5]
-        mc=summary.get('market_comparison') or {}
-        parts=[f"整体 evidence confidence：{conf.get('label','—')} ({conf.get('score','—')}/100)。"]
-        if low: parts.append('低置信度主题：'+ '；'.join(f"{x['name']} ({x['count']} rows, {x['source_count']} source)" for x in low))
-        if not mc.get('available'): parts.append('跨市场消费者比较仍被阻断：'+str(mc.get('reason') or 'coverage gap'))
-        if summary.get('window_unknown_count'): parts.append(f"另有 {summary['window_unknown_count']} 条证据日期无法验证。")
-        parts.append('下一步优先增加独立来源和可比市场样本，而不是让模型把同一批数据总结得更长。')
+        conf=summary.get('evidence_confidence') or {};issues=summary.get('issues') or []
+        low=[x for x in issues if x.get('confidence')=='Low'][:5];mc=summary.get('market_comparison') or {}
+        if zh:
+            parts=[f"整体 evidence confidence：{conf.get('label','—')} ({conf.get('score','—')}/100)。"]
+            if low: parts.append('低置信度主题：'+'；'.join(f"{x['name']} ({x['count']} rows, {x['source_count']} source)" for x in low))
+            if not mc.get('available'): parts.append('跨市场消费者比较仍被阻断：'+str(mc.get('reason') or 'coverage gap'))
+            if summary.get('window_unknown_count'): parts.append(f"另有 {summary['window_unknown_count']} 条证据日期无法验证。")
+            parts.append('下一步优先增加独立来源和可比市场样本，而不是让模型把同一批数据总结得更长。')
+            return '\n\n'.join(parts)
+        parts=[f"Overall evidence confidence: {conf.get('label','—')} ({conf.get('score','—')}/100)."]
+        if low: parts.append('Low-confidence topics: '+'; '.join(f"{x['name']} ({x['count']} rows, {x['source_count']} source)" for x in low))
+        if not mc.get('available'): parts.append('Cross-market consumer comparison remains blocked: '+str(mc.get('reason') or 'coverage gap'))
+        if summary.get('window_unknown_count'): parts.append(f"{summary['window_unknown_count']} evidence rows also have unverified dates.")
+        parts.append('The best next step is to add independent sources and comparable market samples, not to ask the model to summarize the same evidence more aggressively.')
         return '\n\n'.join(parts)
 
     if any(k in q for k in ['product team','产品团队','产品优先','validate first','验证 first','先验证']):
         if decisions:
             x=decisions[0];d=x['decision']
-            return (f"第一优先：{x['name']}。\n\n证据解释：{d.get('insight','—')}\n\n"
-                    f"Product Action：{d.get('product_action','—')}\n\nNext Validation：{d.get('next_validation','—')}\n\n"
-                    f"Confidence：{x.get('confidence','—')}；这仍是验证优先级，不是市场规模结论。")
-        return '当前没有足够的 evidence-backed decision。先增加消费者样本与 competitor benchmark。'
+            if zh:return f"第一优先：{x['name']}。\n\n证据解释：{d.get('insight','—')}\n\nProduct Action：{d.get('product_action','—')}\n\nNext Validation：{d.get('next_validation','—')}\n\nConfidence：{x.get('confidence','—')}；这仍是验证优先级，不是市场规模结论。"
+            return f"First priority: {x['name']}.\n\nEvidence interpretation: {d.get('insight','—')}\n\nProduct Action: {d.get('product_action','—')}\n\nNext Validation: {d.get('next_validation','—')}\n\nConfidence: {x.get('confidence','—')}. This is a validation priority, not a market-size claim."
+        return '当前没有足够的 evidence-backed decision。先增加消费者样本与 competitor benchmark。' if zh else 'There is not enough evidence for a decision yet. Add consumer samples and competitor evidence first.'
 
-    if any(k in q for k in ['gtm message','message','定位','传播','卖点','marketing','gTM'.lower()]):
+    if any(k in q for k in ['gtm message','message','定位','传播','卖点','marketing','gtm']):
         if decisions:
             x=decisions[0];d=x['decision']
-            return (f"当前最有证据支持的 GTM 方向来自「{x['name']}」：\n\n{d.get('gtm_action','—')}\n\n"
-                    f"为什么：{d.get('insight','—')}\n\n"
-                    '建议把它写成可证明的 proof point，而不是泛化成“用户都更喜欢”。')
+            if zh:return f"当前最有证据支持的 GTM 方向来自「{x['name']}」：\n\n{d.get('gtm_action','—')}\n\n为什么：{d.get('insight','—')}\n\n建议把它写成可证明的 proof point，而不是泛化成“用户都更喜欢”。"
+            return f"The strongest evidence-backed GTM direction comes from “{x['name']}”:\n\n{d.get('gtm_action','—')}\n\nWhy: {d.get('insight','—')}\n\nTreat it as a proof point that must be demonstrated, not as a broad claim that all users prefer it."
         drivers=summary.get('drivers') or []
-        return '当前可用 positive drivers：\n'+'\n'.join(f"- {x['name']} ({x['count']})" for x in drivers[:5]) if drivers else '当前正面驱动证据不足。'
+        if zh:return '当前可用 positive drivers：\n'+'\n'.join(f"- {x['name']} ({x['count']})" for x in drivers[:5]) if drivers else '当前正面驱动证据不足。'
+        return 'Current positive drivers:\n'+'\n'.join(f"- {x['name']} ({x['count']})" for x in drivers[:5]) if drivers else 'Positive-driver evidence is currently weak.'
 
     if not reviews and any(k in q for k in ['review','评论','痛点','consumer']):
-        return '当前研究没有真实消费者文本。请检查数据源状态；系统不会用 synthetic 数据补空。'
+        return '当前研究没有真实消费者文本。系统不会用 synthetic 数据补空。' if zh else 'This research currently has no real consumer text. The system will not fill that gap with synthetic reviews.'
 
     if any(k in q for k in ['痛点','问题','barrier','issue','最值得']):
         xs=summary.get('issues',[])[:5]
-        if not xs:return '当前真实样本中没有识别出足够稳定的消费者主题。'
-        return '当前 Top topics / barriers：\n'+ '\n'.join(f"{i+1}. {x['name']}：{x['count']} 条，sample share {x['share']}%，decision-impact {x['purchase_impact_rate']}%，confidence {x['confidence']}" for i,x in enumerate(xs))+'\n\n请点击 Consumer Voice 回看来源再下结论。'
+        if not xs:return '当前真实样本中没有识别出足够稳定的消费者主题。' if zh else 'The current real sample does not contain stable enough consumer topics.'
+        body='\n'.join(f"{i+1}. {x['name']}: {x['count']} rows, sample share {x['share']}%, decision-impact {x['purchase_impact_rate']}%, confidence {x['confidence']}" for i,x in enumerate(xs))
+        return ('当前 Top topics / barriers：\n'+body+'\n\n请点击 Consumer Voice 回看来源再下结论。') if zh else ('Top topics / barriers in the current sample:\n'+body+'\n\nOpen Consumer Voice to inspect source evidence before making a decision.')
 
     if any(k in q for k in ['正面','driver','为什么买']):
         xs=summary.get('drivers',[])[:5]
-        return 'Top positive drivers：\n'+'\n'.join(f"{i+1}. {x['name']}：{x['count']} 条" for i,x in enumerate(xs)) if xs else '当前样本里正面驱动信号不足。'
+        if zh:return 'Top positive drivers：\n'+'\n'.join(f"{i+1}. {x['name']}：{x['count']} 条" for i,x in enumerate(xs)) if xs else '当前样本里正面驱动信号不足。'
+        return 'Top positive drivers:\n'+'\n'.join(f"{i+1}. {x['name']}: {x['count']} rows" for i,x in enumerate(xs)) if xs else 'Positive-driver evidence is currently weak.'
 
     if any(k in q for k in ['机会','opportunity','新品','做什么']):
         xs=opportunities[:5]
-        if not xs:return '当前 evidence 不足以生成 opportunity hypothesis。'
+        if not xs:return '当前 evidence 不足以生成 opportunity hypothesis。' if zh else 'There is not enough evidence to generate opportunity hypotheses.'
         lines=[]
         for i,x in enumerate(xs):
-            d=x.get('decision') or {}
-            lines.append(f"{i+1}. {x['name']}：priority {x['opportunity_score']}/100；{x['confidence']} confidence"+(f"；next={d.get('next_validation')}" if d.get('next_validation') else ''))
-        return 'Opportunity hypotheses（不是市场空白证明）：\n'+'\n'.join(lines)+'\n\n优先级用于决定下一步验证资源，不代表 TAM / revenue。'
+            d=x.get('decision') or {};lines.append(f"{i+1}. {x['name']}: priority {x['opportunity_score']}/100; {x['confidence']} confidence"+(f"; next={d.get('next_validation')}" if d.get('next_validation') else ''))
+        return ('Opportunity hypotheses（不是市场空白证明）：\n'+'\n'.join(lines)+'\n\n优先级用于决定下一步验证资源，不代表 TAM / revenue。') if zh else ('Opportunity hypotheses (not proof of whitespace):\n'+'\n'.join(lines)+'\n\nPriority is for allocating validation effort; it is not TAM or revenue.')
 
     if any(k in q for k in ['销量','畅销','best seller','产品']):
-        xs=products[:10]
-        return '系统不会把 review count 冒充销量。当前可展示的是商品事实/零售信号：\n'+'\n'.join(f"{i+1}. [{x.get('source')}] {x.get('title')} | price={x.get('price')} {x.get('currency') or ''} | rating={x.get('rating')} | reviews={x.get('review_count')}" for i,x in enumerate(xs))
+        xs=products[:10];body='\n'.join(f"{i+1}. [{x.get('source')}] {x.get('title')} | price={x.get('price')} {x.get('currency') or ''} | rating={x.get('rating')} | reviews={x.get('review_count')}" for i,x in enumerate(xs))
+        return ('系统不会把 review count 冒充销量。当前可展示的是商品事实/零售信号：\n'+body) if zh else ('The system never treats review count as unit sales. Available evidence is limited to product facts / retail signals:\n'+body)
 
     if demo.get('executive_recommendation'):
-        return (f"当前决策摘要：{demo['executive_recommendation']}\n\n"
-                f"Evidence confidence：{summary.get('evidence_confidence',{}).get('label','—')}。"
-                '你可以继续问：产品先验证什么、GTM message、US vs AU 是否可比、证据哪里最弱。')
-    return f"当前研究已收集 {summary['review_count']} 条消费者证据、{summary['product_count']} 个商品结果、{summary['trend_points']} 个趋势点。Evidence confidence: {summary['evidence_confidence']['label']}。配置 LLM 后可以进行更自由的证据检索与跨表分析。"
+        if zh:return f"当前决策摘要：{demo['executive_recommendation']}\n\nEvidence confidence：{summary.get('evidence_confidence',{}).get('label','—')}。你可以继续问：产品先验证什么、GTM message、US vs AU 是否可比、证据哪里最弱。"
+        return f"Current decision summary: {demo['executive_recommendation']}\n\nEvidence confidence: {summary.get('evidence_confidence',{}).get('label','—')}. You can ask what product should validate first, the strongest GTM message, whether US/AU can be compared, or where evidence is weakest."
+    return (f"当前研究已收集 {summary['review_count']} 条消费者证据、{summary['product_count']} 个商品结果、{summary['trend_points']} 个趋势点。Evidence confidence: {summary['evidence_confidence']['label']}。" if zh else f"This research contains {summary['review_count']} consumer evidence rows, {summary['product_count']} product signals and {summary['trend_points']} trend points. Evidence confidence: {summary['evidence_confidence']['label']}.")
 
 
 app.mount('/',StaticFiles(directory=STATIC,html=True),name='static')

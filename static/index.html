@@ -1,262 +1,222 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="description" content="InsightFlow AI turns fragmented overseas consumer signals into evidence-backed product and GTM decisions."/>
 <meta name="theme-color" content="#0b0f14"/>
-<title>InsightFlow AI · Global Consumer & GTM Intelligence</title>
+<title>InsightFlow AI · Consumer & GTM Intelligence</title>
 <link rel="stylesheet" href="/styles.css"/>
 </head>
-<body class="portfolio-mode">
-<div class="shell">
-  <aside class="sidebar">
-    <div class="brand"><div class="logo">IF</div><div><b>InsightFlow AI</b><span>Global Consumer & GTM Intelligence</span></div></div>
-    <button class="portfolioHome" id="portfolioHome">← Portfolio home</button>
-    <button class="new" id="newResearch">＋ New research</button>
-    <button class="demoSideBtn" id="demoSideBtn">▶ Flagship case</button>
-    <button class="historyBtn" id="historyBtn">↻ Recent research</button>
-    <nav>
-      <button data-tab="overview" class="active">◫ <span>Executive Snapshot</span></button>
-      <button data-tab="trends">↗ <span>Trend Radar</span></button>
-      <button data-tab="reviews">◎ <span>Consumer Voice</span></button>
-      <button data-tab="products">▦ <span>Competitive Benchmark</span></button>
-      <button data-tab="markets">⇄ <span>Market Comparison</span></button>
-      <button data-tab="opportunities">◇ <span>Opportunity Board</span></button>
-      <button data-tab="report">▤ <span>Executive Brief</span></button>
+<body>
+<div id="portfolioView" class="portfolio-view">
+  <header class="site-nav">
+    <a class="wordmark" href="/" aria-label="InsightFlow AI home"><span class="mark">IF</span><span><b>InsightFlow AI</b><small data-i18n="brandTag">Consumer & GTM Intelligence</small></span></a>
+    <nav class="site-links" aria-label="Portfolio navigation">
+      <a href="#workflow" data-i18n="navWorkflow">Workflow</a>
+      <a href="#cases" data-i18n="navCases">Cases</a>
+      <a href="#method" data-i18n="navMethod">Method</a>
+      <a href="https://github.com/Meriky323/insightflow-ai" target="_blank" rel="noopener">GitHub ↗</a>
     </nav>
-    <div class="sideBottom">
-      <button class="askGlobal" id="askGlobal">✦ Ask InsightFlow</button>
-      <button class="methodBtn" id="methodBtn">ⓘ Method & guardrails</button>
-      <a class="caseLink" href="/case-study.html" target="_blank" rel="noopener">Case Study ↗</a>
-      <button class="settingsBtn" id="settingsBtn">⚙ API Settings</button>
-      <small>Evidence → Insight → Decision → Action</small>
+    <div class="nav-actions">
+      <button class="lang-switch" data-lang-toggle aria-label="Switch language">中文</button>
+      <button class="button button-dark" id="navDemoBtn" data-i18n="openDemo">Open demo</button>
     </div>
-  </aside>
+  </header>
 
   <main>
-    <section id="portfolioView" class="portfolioView">
-      <nav class="portfolioNav">
-        <a class="portfolioBrand" href="/">InsightFlow <span>AI</span></a>
-        <div class="portfolioNavLinks">
-          <a href="#workflow">Workflow</a>
-          <a href="#case">Flagship case</a>
-          <a href="#targetCase">Target case</a>
-          <a href="/case-study.html" target="_blank" rel="noopener">Case study</a>
-          <a href="https://github.com/Meriky323/insightflow-ai" target="_blank" rel="noopener">GitHub ↗</a>
+    <section class="hero-section">
+      <div class="hero-copy">
+        <span class="eyebrow" data-i18n="heroEyebrow">AI × OVERSEAS CONSUMER INTELLIGENCE</span>
+        <h1 data-i18n-html="heroTitle">Turn fragmented consumer signals into <em>evidence-backed</em> GTM decisions.</h1>
+        <p class="hero-lede" data-i18n="heroLede">A portfolio-grade research system that connects market signals, consumer voice and competitor evidence — then converts them into Product Action, GTM Action and Next Validation.</p>
+        <div class="hero-actions">
+          <button class="button button-primary button-lg" id="heroDemoBtn" data-i18n="exploreFlagship">Explore flagship case →</button>
+          <a class="button button-secondary button-lg" href="/case-study.html" target="_blank" rel="noopener" data-i18n="readCase">Read case study</a>
         </div>
-      </nav>
-
-      <div class="portfolioHero">
-        <div class="heroCopy">
-          <span class="eyebrow">AI × OVERSEAS CONSUMER INTELLIGENCE</span>
-          <h1>From noisy global signals<br/>to an <em>evidence-backed</em> GTM decision.</h1>
-          <p>InsightFlow 把商品、社区讨论、评论与搜索趋势放进同一条研究链路：先保留证据，再用 AI 结构化消费者需求，最后输出可验证的产品与 GTM 动作。</p>
-          <div class="heroActions">
-            <button id="demoBtn" class="primary heroPrimary">Explore the flagship case →</button>
-            <a class="ghost heroGhost" href="/case-study.html" target="_blank" rel="noopener">Read the case study</a>
-          </div>
-          <div class="trustRow">
-            <span>✓ No synthetic reviews</span>
-            <span>✓ Evidence-level traceability</span>
-            <span>✓ Cross-market guardrails</span>
-          </div>
-        </div>
-        <div class="heroArtifact" aria-label="InsightFlow decision workflow preview">
-          <div class="artifactTop"><span>FLAGSHIP CASE</span><strong>Magnetic Power Bank</strong><small>US · AU · portfolio snapshot</small></div>
-          <div class="artifactSignal">
-            <span class="signalIndex">01</span>
-            <div><small>EMERGING SIGNAL</small><b>Portability is becoming a usage constraint</b><p>Users are not asking only “how much capacity?” — they are asking whether a 10K pack is comfortable while attached.</p></div>
-          </div>
-          <div class="artifactDecision">
-            <div><small>PRODUCT</small><b>Benchmark thickness, footprint & thermals</b></div>
-            <div><small>GTM</small><b>Lead with usable-in-hand portability</b></div>
-          </div>
-          <div class="artifactBoundary"><span>GUARDRAIL</span><p>US/AU consumer preference comparison is blocked until equivalent voice data exists in both markets.</p></div>
+        <div class="trust-strip">
+          <span data-i18n="trust1">✓ Traceable evidence</span>
+          <span data-i18n="trust2">✓ No synthetic reviews</span>
+          <span data-i18n="trust3">✓ Decision guardrails</span>
         </div>
       </div>
-
-      <section class="portfolioMetrics">
-        <div><b>32</b><span>traceable consumer signals across two periods</span></div>
-        <div><b>8</b><span>competitor / retail product signals</span></div>
-        <div><b>2</b><span>historical periods for topic delta</span></div>
-        <div><b>0</b><span>API keys required to review the portfolio demo</span></div>
-      </section>
-
-      <section class="workflowSection" id="workflow">
-        <div class="sectionIntro"><span class="eyebrow">REAL WORKFLOW, NOT A CHATBOT</span><h2>A research system designed around the decisions teams actually make.</h2><p>The model is useful only after the evidence is normalized, scoped and made comparable.</p></div>
-        <div class="workflowGrid">
-          <article><span>01</span><h3>Frame the business question</h3><p>Product launch, GTM, competitor intelligence or messaging — research starts from a decision, not a keyword.</p></article>
-          <article><span>02</span><h3>Build an evidence layer</h3><p>Shopping, retail reviews, YouTube, Trends and imported datasets share one auditable schema with source, market and date boundaries.</p></article>
-          <article><span>03</span><h3>Structure consumer voice</h3><p>AI extracts multi-label topics, drivers, barriers, scenarios and purchase impact. Fallback logic remains explicit when AI is unavailable.</p></article>
-          <article><span>04</span><h3>Turn signals into action</h3><p>Trend change + consumer evidence + competitor coverage becomes an opportunity hypothesis with Product Action, GTM Action and Next Validation.</p></article>
+      <div class="hero-console">
+        <div class="console-head"><span data-i18n="flagshipCase">FLAGSHIP CASE</span><b>10K Magnetic Power Bank</b><small>US · AU</small></div>
+        <div class="signal-card accent">
+          <div class="signal-meta"><span>01</span><small data-i18n="emergingSignal">EMERGING SIGNAL</small></div>
+          <h3 data-i18n="heroSignalTitle">Portability is becoming a usage constraint</h3>
+          <p data-i18n="heroSignalText">Users are not asking only about capacity. They are asking whether a 10K pack is comfortable while attached to the phone.</p>
         </div>
-      </section>
-
-      <section class="caseSection" id="case">
-        <div class="caseCopy">
-          <span class="eyebrow">FLAGSHIP WALKTHROUGH</span>
-          <h2>One category. Two periods. A deliberately honest decision boundary.</h2>
-          <p>The demo asks a simple business question: <b>what should a 10K magnetic power bank prove before launch, and which market claims are not yet supported?</b></p>
-          <div class="caseBullets">
-            <div><span>Signal</span><p>Slimness, thermal behavior and fit repeatedly appear as usage / purchase criteria.</p></div>
-            <div><span>Decision</span><p>Prioritize usable-in-hand form factor and thermal proof; validate device fit and magnetic retention.</p></div>
-            <div><span>Boundary</span><p>Consumer voice is mostly GLOBAL, so the system refuses to fabricate US-vs-AU preference differences.</p></div>
-          </div>
-          <button id="caseDemoBtn" class="dark bigButton">Open the decision workspace →</button>
+        <div class="decision-row">
+          <article><small data-i18n="productActionLabel">PRODUCT ACTION</small><b data-i18n="heroProductAction">Benchmark thickness, footprint and thermals</b></article>
+          <article><small data-i18n="gtmActionLabel">GTM ACTION</small><b data-i18n="heroGtmAction">Lead with usable-in-hand portability</b></article>
         </div>
-        <div class="casePanel">
-          <div class="casePanelHead"><span>Decision chain</span><strong>Evidence first</strong></div>
-          <div class="decisionFlow">
-            <div><i>1</i><span>Evidence</span><b>Source + market + date</b></div>
-            <div><i>2</i><span>Insight</span><b>Topic + barrier + scenario</b></div>
-            <div><i>3</i><span>Decision</span><b>Opportunity hypothesis</b></div>
-            <div><i>4</i><span>Action</span><b>Product + GTM + validation</b></div>
-          </div>
-          <div class="caseProof"><span>What makes it credible</span><p>Every recommendation can be traced back to evidence. Missing coverage is surfaced as a limitation instead of being filled by generated data.</p></div>
-        </div>
-      </section>
-
-      <section class="targetCaseSection" id="targetCase">
-        <div class="targetCaseIntro">
-          <span class="eyebrow">TARGET-COMPANY APPLICATION</span>
-          <h2>Same research logic. A completely different category.</h2>
-          <p>为了证明 InsightFlow 不是“为充电宝写死的 Dashboard”，我把同一套 evidence → insight → decision 框架应用到 <b>Insta360 X6</b> 上市场景：硬件升级很强，但真正决定升级理由和品牌护城河的，可能是 workflow。</p>
-          <a class="targetCaseButton" href="/case-insta360-x6.html" target="_blank" rel="noopener">Open Insta360 X6 launch case →</a>
-        </div>
-        <div class="targetCaseCards">
-          <article><span>SIGNAL</span><b>Software maturity is a moat — and a promise.</b><p>Recent buyers value Insta360's editing ecosystem, while long-term users surface export, metadata and stability friction.</p></article>
-          <article><span>GTM</span><b>Prove time-to-share, not only image quality.</b><p>X6 launch messaging should demonstrate the whole capture → reframe → export → share journey.</p></article>
-          <article><span>BOUNDARY</span><b>Launch sample ≠ market truth.</b><p>The case is explicitly Medium confidence and recommends diary testing before broad market claims.</p></article>
-        </div>
-      </section>
-
-      <section class="teamsSection">
-        <div class="sectionIntro compact"><span class="eyebrow">HOW A COMPANY COULD USE IT</span><h2>One evidence layer, different downstream decisions.</h2></div>
-        <div class="teamsGrid">
-          <article><b>Consumer Insights</b><p>Detect changing needs and explain the evidence behind them.</p></article>
-          <article><b>Product</b><p>Prioritize physical benchmarks, feature trade-offs and concept validation.</p></article>
-          <article><b>GTM / Marketing</b><p>Choose positioning, proof points, market claims and content angles.</p></article>
-          <article><b>Growth / User Ops</b><p>Track recurring barriers, usage scenarios and market-specific signals.</p></article>
-        </div>
-      </section>
-
-      <section class="portfolioFooter">
-        <div><b>InsightFlow AI</b><p>Portfolio prototype · Global Consumer & GTM Intelligence</p></div>
-        <div><a href="/case-study.html" target="_blank">Case Study</a><a href="https://github.com/Meriky323/insightflow-ai" target="_blank" rel="noopener">GitHub</a><button id="footerDemoBtn">Explore demo →</button></div>
-      </section>
+        <div class="guardrail-card"><span data-i18n="guardrailLabel">GUARDRAIL</span><p data-i18n="heroGuardrail">US/AU consumer preference comparison is blocked until comparable voice data exists in both markets.</p></div>
+      </div>
     </section>
 
-    <section id="workspaceView" class="workspaceView hidden">
-      <header class="workspaceHeader">
-        <div><div class="crumb">Consumer intelligence workspace</div><h1 id="title">Executive Snapshot</h1><p id="subtitle">最重要的证据、消费者主题和数据质量。</p></div>
-        <div class="headerActions"><span id="modePill" class="pill demo hidden">Portfolio demo</span><span id="configPill" class="pill warn">Live connector optional</span><button id="settingsBtn2" class="ghost">Settings</button></div>
-      </header>
+    <section class="proof-band" aria-label="Project proof points">
+      <div><b>32</b><span data-i18n="metricSignals">traceable consumer signals</span></div>
+      <div><b>8</b><span data-i18n="metricProducts">competitor / retail signals</span></div>
+      <div><b>2</b><span data-i18n="metricPeriods">historical periods</span></div>
+      <div><b>0</b><span data-i18n="metricKeys">API keys required for recruiter demo</span></div>
+    </section>
 
-      <section id="workspace">
-        <div class="statusbar"><div><b id="researchKeyword"></b><span id="researchScope"></span></div><div class="progressWrap"><span id="progressText"></span><div class="progress"><i id="progressBar"></i></div></div></div>
-        <div id="warningStrip" class="notice hidden"></div>
-        <div id="demoBanner" class="demoBanner hidden"></div>
+    <section id="workflow" class="section-wrap">
+      <div class="section-heading"><span class="eyebrow" data-i18n="workflowEyebrow">THE WORKFLOW</span><h2 data-i18n="workflowTitle">Built around a business decision, not around a chatbot.</h2><p data-i18n="workflowLead">The model is useful only after evidence is scoped, normalized and made comparable.</p></div>
+      <div class="workflow-grid">
+        <article><span>01</span><h3 data-i18n="step1Title">Frame the decision</h3><p data-i18n="step1Text">Start with a product launch, GTM, competitor or messaging question.</p></article>
+        <article><span>02</span><h3 data-i18n="step2Title">Build the evidence layer</h3><p data-i18n="step2Text">Normalize search, retail, community and imported data with source, market and date boundaries.</p></article>
+        <article><span>03</span><h3 data-i18n="step3Title">Structure consumer voice</h3><p data-i18n="step3Text">Extract topics, drivers, barriers, scenarios and purchase impact with auditable evidence.</p></article>
+        <article><span>04</span><h3 data-i18n="step4Title">Turn signals into action</h3><p data-i18n="step4Text">Prioritize opportunities and state Product Action, GTM Action and the next validation step.</p></article>
+      </div>
+    </section>
 
-        <section id="tab-overview" class="tab active">
-          <div id="decisionMemo" class="decisionMemo"></div>
-          <div id="executiveTakeaways" class="takeawayGrid"></div>
-          <div class="kpis" id="kpis"></div>
-          <div class="grid2">
-            <article class="card"><div class="cardHead"><div><h3>Top consumer topics</h3><p>Multi-label topics extracted from consumer evidence</p></div></div><div id="issueBars" class="bars"></div></article>
-            <article class="card"><div class="cardHead"><div><h3>Positive purchase drivers</h3><p>What people explicitly value</p></div></div><div id="driverBars" class="bars"></div></article>
-          </div>
-          <div class="grid2">
-            <article class="card"><div class="cardHead"><div><h3>Source coverage</h3><p>Which evidence types actually cover each market</p></div></div><div id="coverageMatrix"></div></article>
-            <article class="card"><div class="cardHead"><div><h3>Evidence quality</h3><p>Confidence + analysis mode + known limitations</p></div></div><div id="qualityBox"></div></article>
-          </div>
-          <article class="card evidenceChainCard"><div class="cardHead"><div><h3>Evidence → decision chain</h3><p>The workflow is designed to keep inference separate from observed evidence.</p></div></div><div id="evidenceChain" class="evidenceChain"></div></article>
-        </section>
+    <section class="section-wrap compact-section">
+      <div class="section-heading"><span class="eyebrow" data-i18n="capEyebrow">WHAT THE SYSTEM DOES</span><h2 data-i18n="capTitle">Five surfaces. One research chain.</h2></div>
+      <div class="capability-grid">
+        <article><i>01</i><h3 data-i18n="capOverview">Executive Snapshot</h3><p data-i18n="capOverviewText">Business question, recommendation, confidence and decision boundaries in one screen.</p></article>
+        <article><i>02</i><h3 data-i18n="capTrend">Trend Radar</h3><p data-i18n="capTrendText">Compare historical topic share and search momentum without pretending it is market size.</p></article>
+        <article><i>03</i><h3 data-i18n="capVoice">Consumer Voice</h3><p data-i18n="capVoiceText">Trace every topic and barrier back to real source text.</p></article>
+        <article><i>04</i><h3 data-i18n="capComp">Competitor Benchmark</h3><p data-i18n="capCompText">Connect product facts with consumer evidence rather than showing a product list.</p></article>
+        <article><i>05</i><h3 data-i18n="capOpp">Opportunity Board</h3><p data-i18n="capOppText">Evidence → insight → Product Action → GTM Action → Next Validation.</p></article>
+      </div>
+    </section>
 
-        <section id="tab-trends" class="tab">
-          <div class="sectionHead"><div><h2>Trend Radar</h2><p>识别变化方向，而不是把单次热度误当市场规模。</p></div><button class="helpPill" data-method-anchor="trend">How to read this</button></div>
-          <div class="grid2">
-            <article class="card"><div class="cardHead"><div><h3>Search demand trend</h3><p>Within-market normalized Google Trends index</p></div></div><div id="trendChart" class="chart"></div></article>
-            <article class="card"><div class="cardHead"><div><h3>Momentum by market</h3><p>Direction is comparable within each market, not absolute market size</p></div></div><div id="trendMomentum"></div></article>
-          </div>
-          <article class="card"><div class="cardHead"><div><h3>Emerging consumer signals</h3><p>Topic-share change vs latest comparable historical run; only common consumer-voice sources are used.</p></div></div><div id="historicalSignals"></div></article>
-        </section>
+    <section id="cases" class="section-wrap case-showcase">
+      <div class="section-heading"><span class="eyebrow" data-i18n="casesEyebrow">PROOF OF GENERALIZATION</span><h2 data-i18n="casesTitle">Same logic, different categories.</h2><p data-i18n="casesLead">The project is deliberately tested beyond one hard-coded product category.</p></div>
+      <div class="case-grid">
+        <article class="case-featured">
+          <div><span class="case-tag" data-i18n="flagshipTag">FLAGSHIP</span><h3>Magnetic Power Bank · US / AU</h3><p data-i18n="powerCaseText">A two-period evidence snapshot for portability, thermals, device fit and GTM proof points.</p></div>
+          <button class="button button-light" id="caseDemoBtn" data-i18n="openWorkspace">Open decision workspace →</button>
+        </article>
+        <article class="case-target">
+          <div><span class="case-tag" data-i18n="targetTag">TARGET-COMPANY CASE</span><h3>Insta360 X6 · Launch Intelligence</h3><p data-i18n="x6CaseText">A launch case asking whether workflow maturity can become a stronger moat than hardware specs alone.</p></div>
+          <a class="button button-secondary" href="/case-insta360-x6.html" target="_blank" rel="noopener" data-i18n="openX6">Open X6 case →</a>
+        </article>
+      </div>
+    </section>
 
-        <section id="tab-reviews" class="tab">
-          <div class="sectionHead"><div><h2>Consumer Voice & Evidence</h2><p>保留来源、市场、日期和分析模式；点击 evidence 可回到公开来源。</p></div><div class="inlineActions"><button id="importEvidence" class="ghost">＋ Import CSV / JSON</button><button id="csvQuick" class="ghost">↓ Evidence CSV</button></div></div>
-          <input id="evidenceFile" class="hidden" type="file" accept=".csv,.tsv,.json,.txt"/>
-          <div class="filters"><input id="reviewSearch" placeholder="搜索证据 / topic / driver / barrier"/><select id="reviewSource"><option value="">All sources</option></select><select id="reviewMarket"><option value="">All markets</option></select><select id="reviewSent"><option value="">All sentiment</option><option>positive</option><option>neutral</option><option>negative</option></select><select id="reviewIssue"><option value="">All topics</option></select></div>
-          <div class="rowMeta" id="reviewCount"></div>
-          <div class="tableWrap tall"><table><thead><tr><th>Source</th><th>Market</th><th>Raw evidence</th><th>Sentiment</th><th>Topics</th><th>Driver / barrier</th><th>Purchase impact</th><th>Date</th></tr></thead><tbody id="reviewBody"></tbody></table></div>
-          <div class="loadMoreWrap"><button id="loadMoreReviews" class="ghost hidden">Load more</button></div>
-        </section>
+    <section id="method" class="section-wrap integrity-section">
+      <div class="section-heading"><span class="eyebrow" data-i18n="integrityEyebrow">RESEARCH INTEGRITY</span><h2 data-i18n="integrityTitle">The system is designed to know when not to claim something.</h2></div>
+      <div class="integrity-grid">
+        <article><span>01</span><h3 data-i18n="integrity1Title">Evidence confidence</h3><p data-i18n="integrity1Text">Sample size and source diversity affect confidence. A score is prioritization, not certainty.</p></article>
+        <article><span>02</span><h3 data-i18n="integrity2Title">Cross-market comparability</h3><p data-i18n="integrity2Text">US vs AU consumer conclusions are blocked unless comparable voice sources exist in both markets.</p></article>
+        <article><span>03</span><h3 data-i18n="integrity3Title">Stable architecture</h3><p data-i18n="integrity3Text">Live connectors are optional. CSV/JSON import keeps Reddit, TikTok, Instagram or social-listening exports usable without fragile scraping.</p></article>
+      </div>
+    </section>
 
-        <section id="tab-products" class="tab">
-          <div class="sectionHead"><div><h2>Competitive Benchmark</h2><p>商品事实 + 可关联消费者证据。Review count 只作为零售信号，绝不当销量。</p></div></div>
-          <div id="competitorInsight" class="benchmarkCards"></div>
-          <div class="tableWrap"><table><thead><tr><th>Source</th><th>Market</th><th>Product</th><th>Price</th><th>Rating</th><th>Reviews</th><th>Product signal</th><th>Link</th></tr></thead><tbody id="productBody"></tbody></table></div>
-        </section>
-
-        <section id="tab-markets" class="tab">
-          <div class="sectionHead"><div><h2>Market Comparison</h2><p>只在相同消费者数据源覆盖多个市场时进行比较；不同口径会被主动阻断。</p></div><button class="helpPill" data-method-anchor="market">Why block a comparison?</button></div>
-          <div id="marketComparison"></div>
-        </section>
-
-        <section id="tab-opportunities" class="tab">
-          <div class="sectionHead"><div><h2>Opportunity Board</h2><p>每个机会必须回答：证据是什么、为什么重要、产品怎么做、GTM 怎么做、下一步怎么验证。</p></div></div>
-          <div class="notice">Opportunity 是优先级假设，不是 TAM、销量预测或“确定的市场空白”。上线前仍需供应链、成本、认证/专利、实物 benchmark 与 concept test。</div>
-          <div id="opportunityGrid" class="opps"></div>
-        </section>
-
-        <section id="tab-report" class="tab">
-          <div class="reportHero"><span class="kicker">EXECUTIVE BRIEF</span><h2>Decision-ready research brief</h2><p>把研究压缩成高管可读的证据、决策和下一步验证。保留 PDF + Evidence CSV，而不是堆导出格式。</p><div><button id="pdfBtn" class="dark">↓ PDF Brief</button><button id="csvBtn" class="ghost">↓ Evidence CSV</button><button id="methodReportBtn" class="ghost">Methodology</button></div></div>
-          <div class="grid2"><article class="card"><h3>Executive summary</h3><div id="reportSummary"></div></article><article class="card"><h3>Method & boundaries</h3><p id="methodText">系统仅使用真实或可追溯公开证据。缺失来源会显示为 coverage gap，不使用 synthetic review 补空。</p></article></div>
-        </section>
-      </section>
+    <section class="final-cta">
+      <div><span class="eyebrow" data-i18n="ctaEyebrow">TRY THE PRODUCT</span><h2 data-i18n="ctaTitle">See the decision chain, not just the dashboard.</h2><p data-i18n="ctaText">The public demo uses a saved evidence snapshot, so it is fast, safe and does not consume the owner’s API quota.</p></div>
+      <button class="button button-primary button-lg" id="footerDemoBtn" data-i18n="exploreFlagship">Explore flagship case →</button>
     </section>
   </main>
+  <footer class="site-footer"><span>InsightFlow AI · Portfolio Prototype · 2026</span><a href="https://github.com/Meriky323/insightflow-ai" target="_blank" rel="noopener">GitHub ↗</a></footer>
 </div>
 
-<div class="modal" id="researchModal"><div class="modalCard"><div class="modalHead"><div><h2>New real-data research</h2><p>从业务问题开始，不暴露爬虫页数给最终用户。</p></div><button data-close="researchModal">×</button></div>
-  <label>Research objective<select id="objective"><option value="gtm" selected>GTM / market entry</option><option value="product_launch">New product / concept</option><option value="competitor">Competitor intelligence</option><option value="content">Content / messaging</option></select></label>
-  <label>产品 / 品类<input id="keyword" value="10000mAh magnetic power bank"/></label>
-  <label>市场<div class="checks"><label><input type="checkbox" name="market" value="US" checked/> US</label><label><input type="checkbox" name="market" value="AU" checked/> AU</label><label><input type="checkbox" name="market" value="UK"/> UK</label><label><input type="checkbox" name="market" value="CA"/> CA</label></div></label>
-  <label>时间<select id="days"><option value="90">90 days</option><option value="180" selected>180 days</option><option value="365">365 days</option></select></label>
-  <label>Research depth<select id="depth"><option value="quick">Quick · lean evidence</option><option value="standard" selected>Standard · recommended</option><option value="deep">Deep · more evidence</option></select></label>
-  <label>数据源<div class="checks"><label><input type="checkbox" name="source" value="shopping" checked/> Google Shopping</label><label><input type="checkbox" name="source" value="walmart" checked/> Walmart + Reviews</label><label><input type="checkbox" name="source" value="youtube" checked/> YouTube Search + Comments</label><label><input type="checkbox" name="source" value="trends" checked/> Google Trends</label></div><small class="fieldHint">也可以全部取消，先创建研究 shell，再在 Consumer Voice 导入 CSV / JSON（例如 Reddit / TikTok / Brandwatch export）。</small></label>
-  <div class="callEstimate" id="callEstimate">Estimated SerpApi calls: —</div>
-  <button id="runResearch" class="primary full">Run real-data research</button>
-</div></div>
+<div id="workspaceView" class="workspace-view hidden">
+  <header class="workspace-topbar">
+    <div class="workspace-title-group"><button class="icon-button" id="backHome" aria-label="Back">←</button><div><span class="workspace-brand">InsightFlow AI</span><b id="workspaceTitle">Research workspace</b></div></div>
+    <div class="workspace-actions">
+      <span class="mode-pill" id="modePill">Portfolio demo</span>
+      <button class="lang-switch" data-lang-toggle>中文</button>
+      <button class="button button-secondary" id="briefBtn" data-i18n="exportBrief">Export brief</button>
+      <button class="button button-dark analyst-only" id="toolsBtn" data-i18n="analystTools">Analyst tools</button>
+    </div>
+  </header>
+  <div class="workspace-layout">
+    <aside class="workspace-sidebar">
+      <div class="workspace-case"><small data-i18n="researchCase">RESEARCH CASE</small><b id="sideKeyword">—</b><span id="sideScope">—</span></div>
+      <nav class="workspace-nav">
+        <button data-tab="overview" class="active"><span>01</span><b data-i18n="tabOverview">Overview</b></button>
+        <button data-tab="trends"><span>02</span><b data-i18n="tabTrends">Trend Radar</b></button>
+        <button data-tab="reviews"><span>03</span><b data-i18n="tabVoice">Consumer Voice</b></button>
+        <button data-tab="products"><span>04</span><b data-i18n="tabCompetitors">Competitors</b></button>
+        <button data-tab="opportunities"><span>05</span><b data-i18n="tabOpportunities">Opportunities</b></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="text-button" id="methodBtn" data-i18n="methodGuardrails">Method & guardrails</button>
+        <a class="text-button linklike" href="/case-study.html" target="_blank" rel="noopener" data-i18n="caseStudyLink">Case study ↗</a>
+      </div>
+    </aside>
 
-<div class="modal" id="historyModal"><div class="modalCard"><div class="modalHead"><div><h2>Recent research</h2><p>历史研究用于再次打开，也用于 Trend Radar 的可比 delta。</p></div><button data-close="historyModal">×</button></div><div id="historyList" class="historyList"></div></div></div>
+    <main class="workspace-main">
+      <div class="research-status" id="statusBar"><div><span id="statusText">Loading research…</span><small id="statusMessage"></small></div><div class="status-progress"><i id="statusProgress"></i></div></div>
 
-<div class="modal" id="settingsModal"><div class="modalCard"><div class="modalHead"><div><h2>API Settings</h2><p>Key 只保存在本机 .env；Public recruiter mode 不暴露或消耗私有 connector。</p></div><button data-close="settingsModal">×</button></div>
-  <h3>Data connector</h3><label>SerpApi API Key<input id="serpKey" type="password" placeholder="Google Shopping / Walmart / YouTube / Google Trends"/></label>
-  <button id="clearSerp" class="linkBtn">Disconnect SerpApi</button>
-  <div class="divider"></div><h3>AI Engine · OpenAI-compatible</h3>
-  <label>Base URL<input id="llmBase" placeholder="例如 http://127.0.0.1:8080/v1"/></label><label>Model<input id="llmModel" placeholder="Sub2API /v1/models 返回的模型名"/></label><label>API Key<input id="llmKey" type="password"/></label>
-  <button id="clearLlm" class="linkBtn">Disconnect AI Engine</button>
-  <button id="saveSettings" class="primary full">Save settings</button>
-  <button id="testConnections" class="ghost full testBtn">Test connections & quota</button>
-  <div id="connectionResult" class="connectionResult hidden"></div>
-</div></div>
+      <section id="tab-overview" class="workspace-tab active">
+        <div class="tab-heading"><div><span class="eyebrow" data-i18n="overviewEyebrow">EXECUTIVE SNAPSHOT</span><h1 id="businessQuestion">—</h1></div><span class="confidence-chip" id="confidenceChip">—</span></div>
+        <article class="decision-hero"><small data-i18n="recommendedDecision">RECOMMENDED DECISION</small><h2 id="executiveRecommendation">—</h2><p id="decisionPrinciple"></p></article>
+        <div class="action-grid" id="topActions"></div>
+        <div class="overview-grid">
+          <article class="panel"><div class="panel-head"><div><span class="panel-kicker" data-i18n="keySignals">KEY SIGNALS</span><h3 data-i18n="whatConsumersSay">What consumers are saying</h3></div></div><div id="overviewSignals"></div></article>
+          <article class="panel"><div class="panel-head"><div><span class="panel-kicker" data-i18n="sourceCoverage">SOURCE COVERAGE</span><h3 data-i18n="whereEvidenceComes">Where the evidence comes from</h3></div></div><div id="coverageMatrix"></div></article>
+        </div>
+        <article class="panel market-panel"><div class="panel-head"><div><span class="panel-kicker" data-i18n="marketCheck">MARKET COMPARABILITY</span><h3 data-i18n="canMarketsCompare">Can US and AU consumer voice be compared?</h3></div></div><div id="marketComparison"></div></article>
+      </section>
 
-<div class="modal" id="askModal"><div class="modalCard askModalCard"><div class="modalHead"><div><h2>Ask InsightFlow ✦</h2><p id="askMode">Grounded in current evidence</p></div><button data-close="askModal">×</button></div>
-  <div class="suggestedQuestions"><button data-question="What should the product team validate first?">Product priority</button><button data-question="What GTM message is best supported by the evidence?">GTM message</button><button data-question="Can we safely compare US and AU consumer preferences?">US vs AU</button><button data-question="Where is the evidence weakest?">Weak evidence</button></div>
-  <div id="chat" class="chat"><div class="a introAnswer">Ask a business question. In public portfolio mode, answers are deterministic and evidence-grounded so the demo never spends the owner's LLM quota.</div></div>
-  <form id="askForm" class="askForm"><textarea id="askInput" placeholder="例如：最值得进一步验证的用户障碍是什么？"></textarea><button class="dark">Ask ↗</button></form>
-</div></div>
+      <section id="tab-trends" class="workspace-tab">
+        <div class="tab-heading"><div><span class="eyebrow" data-i18n="trendEyebrow">TREND RADAR</span><h1 data-i18n="trendTitle">What changed between research periods?</h1><p data-i18n="trendLead">Historical deltas are descriptive signals, not market-size estimates.</p></div></div>
+        <div id="trendOverview"></div>
+        <div class="panel"><div class="panel-head"><div><span class="panel-kicker" data-i18n="topicDelta">TOPIC DELTA</span><h3 data-i18n="emergingCooling">Emerging, accelerating and cooling signals</h3></div></div><div id="topicDelta"></div></div>
+        <div class="panel"><div class="panel-head"><div><span class="panel-kicker" data-i18n="searchMomentum">SEARCH MOMENTUM</span><h3 data-i18n="withinMarket">Within-market trend direction</h3></div></div><div id="searchMomentum"></div></div>
+      </section>
 
-<div class="modal" id="methodModal"><div class="modalCard methodModalCard"><div class="modalHead"><div><h2>Method & decision guardrails</h2><p>What the system can infer — and what it intentionally refuses to claim.</p></div><button data-close="methodModal">×</button></div>
-  <div class="methodGrid">
-    <article><span>01 · Evidence</span><h3>Source before summary</h3><p>Every consumer row retains source, market, date/window status and link. Missing data is shown as a gap.</p></article>
-    <article><span>02 · AI</span><h3>Structure, not fabricate</h3><p>LLM extracts topics, drivers, barriers and scenarios from supplied evidence. When unavailable, fallback analysis is explicitly labeled.</p></article>
-    <article id="method-trend"><span>03 · Trends</span><h3>Direction ≠ market size</h3><p>Google Trends 0–100 is normalized. Separately requested US/AU indices are not treated as absolute demand or market-size ratios.</p></article>
-    <article id="method-market"><span>04 · Markets</span><h3>Comparable sources only</h3><p>Cross-market consumer claims are blocked unless the same consumer-voice source covers every requested market.</p></article>
-    <article><span>05 · Opportunity</span><h3>Hypothesis, not TAM</h3><p>Opportunity scores prioritize what to validate next. They are not revenue forecasts, market-share estimates or proof of PMF.</p></article>
-    <article><span>06 · Public demo</span><h3>No secret or quota exposure</h3><p>Recruiter mode uses a saved traceable snapshot. Live research, uploads, connector diagnostics and paid LLM calls stay disabled.</p></article>
+      <section id="tab-reviews" class="workspace-tab">
+        <div class="tab-heading split-heading"><div><span class="eyebrow" data-i18n="voiceEyebrow">CONSUMER VOICE</span><h1 data-i18n="voiceTitle">Read the evidence behind every insight.</h1><p data-i18n="voiceLead">Original source text stays unchanged. Analysis labels can switch language.</p></div><div class="analyst-only"><button class="button button-secondary" id="importEvidence" data-i18n="importEvidence">Import CSV / JSON</button><input id="evidenceFile" class="hidden" type="file" accept=".csv,.tsv,.json,.txt"/></div></div>
+        <div class="filter-bar"><input id="reviewSearch" data-i18n-placeholder="searchEvidence" placeholder="Search evidence…"/><select id="reviewSource"><option value="" data-i18n="allSources">All sources</option></select><select id="reviewMarket"><option value="" data-i18n="allMarkets">All markets</option></select><select id="reviewSent"><option value="" data-i18n="allSentiment">All sentiment</option><option value="positive">Positive</option><option value="neutral">Neutral</option><option value="negative">Negative</option></select><select id="reviewIssue"><option value="" data-i18n="allTopics">All topics</option></select></div>
+        <div class="table-meta"><span id="reviewCount">—</span><button class="text-button" id="csvQuick" data-i18n="evidenceCsv">Evidence CSV ↓</button></div>
+        <div class="evidence-table-wrap"><table class="data-table evidence-table"><thead><tr><th data-i18n="thSource">Source</th><th data-i18n="thMarket">Market</th><th data-i18n="thEvidence">Evidence</th><th data-i18n="thSentiment">Sentiment</th><th data-i18n="thTopic">Topic</th><th data-i18n="thDriverBarrier">Driver / Barrier</th><th data-i18n="thImpact">Impact</th><th data-i18n="thDate">Date</th></tr></thead><tbody id="reviewBody"></tbody></table></div>
+        <button class="button button-secondary load-more hidden" id="loadMoreReviews" data-i18n="loadMore">Load more</button>
+      </section>
+
+      <section id="tab-products" class="workspace-tab">
+        <div class="tab-heading"><div><span class="eyebrow" data-i18n="compEyebrow">COMPETITOR BENCHMARK</span><h1 data-i18n="compTitle">Product facts + consumer evidence.</h1><p data-i18n="compLead">Review counts are retail signals, never presented as unit sales.</p></div></div>
+        <div id="competitorCards" class="competitor-cards"></div>
+        <div class="panel"><div class="table-scroll"><table class="data-table"><thead><tr><th data-i18n="thBrandProduct">Brand / Product</th><th data-i18n="thMarket">Market</th><th data-i18n="thPrice">Price</th><th data-i18n="thRating">Rating</th><th data-i18n="thReviews">Reviews</th><th data-i18n="thTopTopics">Top topics</th><th data-i18n="thNegativeShare">Negative share</th><th data-i18n="thSource">Source</th></tr></thead><tbody id="productBody"></tbody></table></div></div>
+      </section>
+
+      <section id="tab-opportunities" class="workspace-tab">
+        <div class="tab-heading"><div><span class="eyebrow" data-i18n="oppEyebrow">OPPORTUNITY BOARD</span><h1 data-i18n="oppTitle">Prioritize what to validate next.</h1><p data-i18n="oppLead">Priority scores rank hypotheses. They do not estimate TAM, sales or product-market fit.</p></div></div>
+        <div id="opportunityGrid" class="opportunity-grid"></div>
+      </section>
+    </main>
   </div>
+  <button class="ask-fab" id="askGlobal">✦ <span data-i18n="askInsightFlow">Ask InsightFlow</span></button>
+</div>
+
+<div class="popover hidden" id="toolsMenu"><button id="newResearch" data-i18n="newResearch">＋ New research</button><button id="historyBtn" data-i18n="recentResearch">↻ Recent research</button><button id="settingsBtn" data-i18n="connections">⚙ Connections</button></div>
+
+<div class="modal hidden" id="researchModal"><div class="modal-card wide"><div class="modal-head"><div><span class="eyebrow" data-i18n="analystMode">ANALYST MODE</span><h2 data-i18n="newResearchTitle">New research</h2><p data-i18n="newResearchLead">Define the business question. Technical collection depth stays in the background.</p></div><button class="modal-close" data-close="researchModal">×</button></div>
+  <div class="form-grid">
+    <label><span data-i18n="objective">Objective</span><select id="objective"><option value="gtm">GTM / market entry</option><option value="product_launch">New product / launch</option><option value="competitor">Competitor intelligence</option><option value="content">Content / messaging</option></select></label>
+    <label class="span2"><span data-i18n="productCategory">Product / category</span><input id="keyword" value="10000mAh magnetic power bank"/></label>
+    <label class="span2"><span data-i18n="markets">Markets</span><div class="choice-row"><label><input type="checkbox" name="market" value="US" checked/> US</label><label><input type="checkbox" name="market" value="AU" checked/> AU</label><label><input type="checkbox" name="market" value="UK"/> UK</label><label><input type="checkbox" name="market" value="CA"/> CA</label></div></label>
+    <label><span data-i18n="timeWindow">Time window</span><select id="days"><option value="90">90 days</option><option value="180" selected>180 days</option><option value="365">365 days</option></select></label>
+    <label><span data-i18n="researchDepth">Research depth</span><select id="depth"><option value="quick">Quick</option><option value="standard" selected>Standard</option><option value="deep">Deep</option></select></label>
+    <label class="span2"><span data-i18n="liveSources">Live sources</span><div class="choice-row sources"><label><input type="checkbox" name="source" value="shopping" checked/> Google Shopping</label><label><input type="checkbox" name="source" value="walmart" checked/> Walmart Reviews</label><label><input type="checkbox" name="source" value="youtube" checked/> YouTube</label><label><input type="checkbox" name="source" value="trends" checked/> Google Trends</label></div><small data-i18n="importHint">Reddit / TikTok / Instagram / social-listening exports can enter through CSV / JSON import without fragile scraping.</small></label>
+  </div>
+  <div class="estimate-card"><span data-i18n="estimatedCalls">Estimated SerpAPI calls</span><b id="callEstimate">—</b><small data-i18n="cacheNote">Repeated identical requests may use local cache in analyst mode.</small></div>
+  <button id="runResearch" class="button button-primary full" data-i18n="runResearch">Run research</button>
 </div></div>
+
+<div class="modal hidden" id="historyModal"><div class="modal-card"><div class="modal-head"><div><span class="eyebrow" data-i18n="researchHistory">RESEARCH HISTORY</span><h2 data-i18n="recentResearch">Recent research</h2></div><button class="modal-close" data-close="historyModal">×</button></div><div id="historyList" class="history-list"></div></div></div>
+
+<div class="modal hidden" id="settingsModal"><div class="modal-card"><div class="modal-head"><div><span class="eyebrow" data-i18n="localAnalyst">LOCAL ANALYST MODE</span><h2 data-i18n="connections">Connections</h2><p data-i18n="connectionsLead">Secrets stay in your local .env. Public recruiter mode hides and disables them.</p></div><button class="modal-close" data-close="settingsModal">×</button></div>
+  <div class="connection-block"><div><h3>SerpAPI</h3><small data-i18n="collectionConnector">Structured live-data collection</small></div><label>API Key<input id="serpKey" type="password"/></label><button class="text-button danger" id="clearSerp" data-i18n="disconnect">Disconnect</button></div>
+  <div class="connection-block"><div><h3 data-i18n="aiEngine">AI Engine</h3><small>OpenAI-compatible / Sub2API</small></div><label>Base URL<input id="llmBase" placeholder="http://127.0.0.1:8080/v1"/></label><label>Model<input id="llmModel"/></label><label>API Key<input id="llmKey" type="password"/></label><button class="text-button danger" id="clearLlm" data-i18n="disconnect">Disconnect</button></div>
+  <div id="connectionResult" class="connection-result hidden"></div><div class="modal-actions"><button id="testConnections" class="button button-secondary" data-i18n="testConnections">Test connections & quota</button><button id="saveSettings" class="button button-primary" data-i18n="saveSettings">Save settings</button></div>
+</div></div>
+
+<div class="modal hidden" id="methodModal"><div class="modal-card wide"><div class="modal-head"><div><span class="eyebrow" data-i18n="methodEyebrow">METHOD & GUARDRAILS</span><h2 data-i18n="methodTitle">What the system can — and cannot — claim</h2></div><button class="modal-close" data-close="methodModal">×</button></div><div class="method-grid">
+  <article><span>01</span><h3 data-i18n="method1Title">Evidence, not synthetic rows</h3><p data-i18n="method1Text">If a live source returns nothing, InsightFlow shows missing coverage instead of inventing consumer comments.</p></article>
+  <article><span>02</span><h3 data-i18n="method2Title">Review count ≠ sales</h3><p data-i18n="method2Text">Retail review counts and rankings are signals only. They are never converted into fake unit sales.</p></article>
+  <article><span>03</span><h3 data-i18n="method3Title">Market comparison requires comparable sources</h3><p data-i18n="method3Text">GLOBAL Reddit or YouTube evidence cannot be assigned to US or AU without reliable geography.</p></article>
+  <article><span>04</span><h3 data-i18n="method4Title">Trend index ≠ market size</h3><p data-i18n="method4Text">Google Trends is normalized within each request. The system uses direction and change, not raw indices as country-size comparisons.</p></article>
+  <article><span>05</span><h3 data-i18n="method5Title">Opportunity = validation priority</h3><p data-i18n="method5Text">Scores decide what to test next. They do not prove whitespace, TAM or product-market fit.</p></article>
+  <article><span>06</span><h3 data-i18n="method6Title">Public demo protects quota</h3><p data-i18n="method6Text">Recruiters explore a saved evidence snapshot. Live API research, uploads and secret settings stay disabled.</p></article>
+</div></div></div>
+
+<div class="modal hidden" id="askModal"><div class="modal-card ask-card"><div class="modal-head"><div><span class="eyebrow">AI COPILOT</span><h2 data-i18n="askInsightFlow">Ask InsightFlow</h2><p id="askMode">Evidence-grounded</p></div><button class="modal-close" data-close="askModal">×</button></div><div id="chat" class="chat"><div class="assistant-message" data-i18n="askStarter">Ask what the product team should validate first, what the strongest GTM message is, or where the evidence is weakest.</div></div><div class="prompt-chips"><button data-question-en="What should the product team validate first?" data-question-zh="产品团队第一优先应该验证什么？" data-i18n="askQ1">What should product validate first?</button><button data-question-en="What is the strongest evidence-backed GTM message?" data-question-zh="目前最有证据支持的 GTM 卖点是什么？" data-i18n="askQ2">Best GTM message?</button><button data-question-en="Can US and AU consumer voice be compared?" data-question-zh="现在可以比较美国和澳洲的消费者偏好吗？" data-i18n="askQ3">Can US and AU be compared?</button></div><form id="askForm" class="ask-form"><textarea id="askInput" data-i18n-placeholder="askPlaceholder" placeholder="Ask a question about this research…"></textarea><button class="button button-dark" data-i18n="askButton">Ask ↗</button></form></div></div>
 
 <div class="toast" id="toast"></div>
 <script src="/app.js"></script>

@@ -1,150 +1,84 @@
 # InsightFlow AI
 
-## Live recruiter website
+**Global Consumer & GTM Intelligence · Bilingual Recruiter Demo**
 
-**https://insightflow-ai.up.railway.app/**
-
-This Railway URL is the resume-facing entry point. On Railway, InsightFlow automatically switches to recruiter-safe public mode, so visitors can open the flagship case and target-company case without API keys while live connector settings and paid quota remain protected.
-
-
-**Global Consumer & GTM Intelligence — portfolio-grade prototype**
-
-InsightFlow turns fragmented overseas consumer signals into an auditable decision workflow:
-
-**Evidence → Consumer Signal → Competitive Context → Opportunity Hypothesis → Product / GTM Action → Next Validation**
-
-The project is intentionally designed around the part of AI research that matters in real business work: **what the evidence supports, what it does not support, and what a team should do next.**
-
-## Why this project exists
-
-Overseas market research often lives across product pages, retail reviews, community discussions, videos and trend tools. A generic chatbot can summarize those inputs, but it can also produce confident conclusions from weak or incomparable evidence.
-
-InsightFlow adds a research layer before the model:
-
-- source / market / date provenance
-- multi-label consumer topic extraction
-- driver / barrier / scenario / purchase-impact structuring
-- competitor evidence linkage
-- historical topic delta
-- cross-market comparability checks
-- evidence confidence
-- explicit Product Action / GTM Action / Next Validation
-
-## Preview
+Online demo: **https://insightflow-ai.up.railway.app/**
 
 ![InsightFlow recruiter landing](docs/assets/recruiter-landing.png)
 
 ![InsightFlow executive workspace](docs/assets/executive-workspace.png)
 
-The repository also includes a narrative [Case Study](static/case-study.html), a sample [Executive Brief PDF](examples/flagship_case/InsightFlow_Executive_Brief.pdf), and a sample [Evidence CSV](examples/flagship_case/InsightFlow_Evidence.csv).
+InsightFlow turns fragmented overseas consumer signals into an auditable decision workflow:
 
-## Recruiter-facing flagship demo
+**Evidence → Insight → Decision → Product Action / GTM Action / Next Validation**
 
-The repository ships with a **saved, traceable portfolio snapshot** for:
+The public website is designed for recruiters: it opens directly into a saved evidence-backed case, requires no API keys, does not spend the owner's SerpAPI / LLM quota, and clearly separates facts, inference and research boundaries.
 
-**10,000mAh Magnetic Power Bank · US / AU**
+## What this project demonstrates
 
-The public demo:
+- overseas consumer research and GTM reasoning
+- evidence-first AI analysis rather than “LLM summary = truth”
+- multi-source consumer voice and competitor benchmarking
+- historical topic delta / Trend Radar
+- cross-market comparability guardrails
+- product action + GTM action + next validation
+- bilingual Chinese / English portfolio UX
+- safe public demo + deeper local analyst mode
 
-- needs **no API key**
-- consumes **no SerpApi or LLM quota**
-- uses concise paraphrases of linked public consumer sources
-- includes two historical evidence periods and eight product signals
-- deliberately blocks US/AU consumer-preference claims because equivalent country-level consumer-voice coverage is missing
+## Core product surfaces
 
-Open locally and visit:
-
-```text
-http://127.0.0.1:8000/
-```
-
-Direct flagship case:
-
-```text
-http://127.0.0.1:8000/?demo=1
-```
-
-Case study:
-
-```text
-http://127.0.0.1:8000/case-study.html
-```
-
-## Product surfaces
-
-- **Executive Snapshot** — decision memo, top signals, confidence and evidence chain
-- **Trend Radar** — within-market Google Trends momentum + historical topic-share delta
-- **Consumer Voice** — searchable traceable evidence with topics / drivers / barriers / scenarios
-- **Competitive Benchmark** — product signals plus conservatively linked consumer evidence
-- **Market Comparison** — only compares consumer markets when the same source basis covers all requested markets
-- **Opportunity Board** — evidence-backed priority hypotheses with Product Action / GTM Action / Next Validation
-- **Ask InsightFlow** — OpenAI-compatible grounded analysis locally; deterministic evidence-grounded answers in public recruiter mode
-- **Executive Brief** — PDF decision brief + Evidence CSV
+1. **Executive Snapshot** — business question, recommendation, confidence and decision boundary
+2. **Trend Radar** — historical topic delta and within-market search momentum
+3. **Consumer Voice** — traceable source evidence with topic / sentiment / driver / barrier labels
+4. **Competitors** — product facts linked with consumer evidence
+5. **Opportunity Board** — evidence → insight → product action → GTM action → next validation
+6. **Ask InsightFlow** — evidence-grounded Q&A; public mode uses deterministic local answers so no private model quota is spent
 
 ## Data architecture
 
 ```text
-Live connectors                         Imported evidence
-Google Shopping                        Reddit / TikTok exports
-Walmart + Reviews                      Social listening exports
-YouTube + Comments                     Survey / CRM / support CSV
-Google Trends                          Other CSV / JSON
-       \                                   /
-        └────────── Evidence Layer ────────┘
+LIVE CONNECTORS                         IMPORT LAYER
+Google Shopping                        CSV / JSON
+Walmart Reviews                        Reddit export
+YouTube                                TikTok / Instagram export
+Google Trends                          Brandwatch / Sprinklr export
+                                       Survey / CRM / Support data
+          \                               /
+           -------- Evidence Layer -------
                        ↓
-          Normalize · dedupe · time scope
+          AI / rule-based structuring
                        ↓
-     AI extraction / explicit local fallback
+   Topic · Driver · Barrier · Scenario · Impact
                        ↓
- Topic · Driver · Barrier · Scenario · Impact
+ Trend · Consumer Voice · Competitor Benchmark
                        ↓
- Historical / market / competitor analysis
+ Opportunity → Product Action → GTM Action
                        ↓
- Evidence confidence + decision guardrails
-                       ↓
-      Product Action · GTM Action · Validation
+               Next Validation
 ```
 
-## AI engine
+The architecture intentionally does **not** require fragile Reddit / TikTok / Instagram scraping for the product to remain useful. Compliant exports can enter the same analysis pipeline through CSV / JSON.
 
-InsightFlow accepts any **OpenAI-compatible** gateway.
+## Portfolio cases
 
-For local Sub2API, the common configuration is:
+### Magnetic Power Bank · US / AU
+A two-period evidence snapshot focused on portability, thermal stability, device fit and GTM proof points. The app deliberately blocks US-vs-AU consumer-preference claims because the saved consumer voice is not geographically comparable.
 
-```env
-LLM_BASE_URL=http://127.0.0.1:8080/v1
-LLM_MODEL=<model returned by /v1/models>
-LLM_API_KEY=<your local Sub2API API key>
-```
+### Insta360 X6 · Launch Intelligence
+A target-company application showing the same framework in a different category. The case asks whether creator workflow — record → reframe → export → share — can become a stronger moat as hardware specs converge.
 
-The current LLM layer is used for:
+## Research integrity rules
 
-1. batch review/comment structuring;
-2. topic-label normalization;
-3. grounded evidence Q&A;
-4. Product / GTM decision drafting.
+- no synthetic-review fallback
+- review count is never presented as unit sales
+- GLOBAL consumer evidence is not reassigned to a country
+- Google Trends indices are not treated as cross-country market size
+- opportunity scores prioritize validation; they do not estimate TAM / sales / PMF
+- public recruiter mode hides connectors and blocks paid / secret-consuming actions
 
-If the LLM is unavailable, the system does **not** fabricate rows. It falls back to visibly labeled local analysis.
+## Local analyst mode
 
-## SerpApi usage
-
-One SerpApi key powers multiple SerpApi engines used by the project. Research depth hides crawler-page controls from the product UX:
-
-- **Quick** — lean evidence / lowest call count
-- **Standard** — recommended
-- **Deep** — wider sample
-
-Repeated identical SerpApi requests use a local cache when possible.
-
-## Run on Windows
-
-Double-click:
-
-```text
-START_WINDOWS.bat
-```
-
-Or:
+Windows: double-click `START_WINDOWS.bat` or run:
 
 ```powershell
 py -m venv .venv
@@ -153,86 +87,27 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-## Run on macOS / Linux
+Local mode can use:
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-./start.sh
-```
+- SerpAPI for structured live collection
+- any OpenAI-compatible LLM / Sub2API endpoint
+- CSV / JSON evidence import
 
-## Public portfolio deployment
+## Railway deployment
 
-Recommended environment:
+The repository contains `railway.toml` and a checked deployment flow.
 
-```env
-PUBLIC_DEPLOYMENT=1
-ALLOW_PUBLIC_LIVE_RESEARCH=0
-```
-
-This keeps the recruiter demo interactive while disabling:
-
-- live API-consuming research
-- evidence uploads
-- API settings changes
-- connector diagnostics
-- paid LLM consumption
-- access to non-portfolio research IDs
-
-A public reviewer can still explore the saved case, evidence, benchmark, opportunity logic, grounded local Q&A and exports.
-
-## Research integrity rules
-
-1. **No synthetic-review fallback.**
-2. **Review count is never presented as unit sales.**
-3. **GLOBAL YouTube / community evidence is not assigned to a country.**
-4. **Cross-market consumer comparisons require equivalent source coverage.**
-5. **Google Trends 0–100 is treated as a normalized within-market index, not absolute demand.**
-6. **Opportunity priority is a validation heuristic, not TAM / revenue / PMF proof.**
-7. **AI may structure and reason over supplied evidence; it does not fill missing market evidence.**
+1. Run `DEPLOY_LIVE_WEBSITE.bat`
+2. It creates a normal commit on top of current `main` (no force push)
+3. Railway redeploys automatically
+4. `VERIFY_LIVE_WEBSITE.ps1` checks the complete v1.6 website, bilingual Ask, demo evidence, market guardrail and public-mode secret protection
+5. Put the URL on a resume only after it prints `PASS`
 
 ## Tests
 
 ```bash
-pip install -r requirements-dev.txt
-pytest -q
+python -m pytest -q
+node --check static/app.js
 ```
 
-The test suite checks the recruiter demo, evidence guardrails, public-mode access restrictions and export behavior.
-
-## Repository map
-
-```text
-app/
-  collectors/serpapi.py   live data connector
-  importers.py            CSV / JSON evidence import
-  analysis.py             confidence / benchmark / market / trend logic
-  llm.py                  OpenAI-compatible AI layer
-  demo.py                 traceable recruiter snapshot
-  reports.py              PDF / CSV export
-  main.py                 FastAPI application
-static/
-  index.html               portfolio landing + research workspace
-  app.js                   workspace interaction
-  styles.css               recruiter-facing UI
-  case-study.html          flagship narrative case study
-tests/
-  test_portfolio_demo.py   regression / safety tests
-```
-
-## Positioning
-
-This is **not** a replacement for enterprise platforms such as Brandwatch, Sprinklr or Meltwater. It is a focused prototype that demonstrates how a small AI-native workflow can connect overseas consumer evidence to product and GTM decisions while preserving research boundaries.
-
-## Target-company application case · Insta360 X6
-
-To prove the workflow generalizes beyond one product category, v1.5 includes a second evidence-backed case focused on the 2026 Insta360 X6 launch.
-
-**Business question:** what should X6 launch marketing prove beyond the spec sheet, and which workflow risks deserve immediate validation?
-
-The case highlights a useful global-business tension: users may value Insta360's mature 360 editing ecosystem, while the same workflow becomes a churn risk when export metadata, app stability, long-form editing or transfer friction fails. The resulting recommendation is to prove **time-to-share / workflow advantage**, not compete on imaging specifications alone.
-
-Open locally: `http://127.0.0.1:8000/case-insta360-x6.html`
-
-See `docs/TARGET_CASE_INSTA360_X6.md` and `docs/APPLICATION_PLAYBOOK.md`.
+Current final build: **v1.6.0**
