@@ -1,8 +1,0 @@
-InsightFlow AI — GitHub 上传
-
-1. 解压整个文件夹。
-2. 双击 PUBLISH_TO_GITHUB_WINDOWS.bat。
-3. 如果 GitHub 弹出浏览器登录，只需授权一次。
-4. 黑色窗口显示 SUCCESS 后，仓库即上传完成。
-
-目标仓库：https://github.com/Meriky323/insightflow-ai

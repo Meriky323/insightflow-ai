@@ -23,6 +23,10 @@ CREATE TABLE IF NOT EXISTS researches (
   status TEXT NOT NULL DEFAULT 'queued',
   progress INTEGER NOT NULL DEFAULT 0,
   message TEXT NOT NULL DEFAULT '',
+  source_status_json TEXT NOT NULL DEFAULT '{}',
+  analysis_mode TEXT NOT NULL DEFAULT 'pending',
+  objective TEXT NOT NULL DEFAULT 'gtm',
+  decision_json TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL,
   completed_at TEXT
 );
@@ -62,9 +66,14 @@ CREATE TABLE IF NOT EXISTS reviews (
   helpful INTEGER,
   sentiment TEXT,
   issue TEXT,
+  topics_json TEXT,
   driver TEXT,
+  barrier TEXT,
   purchase_impact TEXT,
   scenario TEXT,
+  competitor_mentions_json TEXT,
+  analysis_mode TEXT,
+  window_status TEXT,
   FOREIGN KEY(research_id) REFERENCES researches(id)
 );
 CREATE INDEX IF NOT EXISTS idx_reviews_research ON reviews(research_id);
@@ -98,16 +107,32 @@ def conn():
         c.close()
 
 
+def _ensure_column(c: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+    names = {r['name'] for r in c.execute(f'PRAGMA table_info({table})').fetchall()}
+    if column not in names:
+        c.execute(f'ALTER TABLE {table} ADD COLUMN {column} {definition}')
+
+
 def init_db() -> None:
     with conn() as c:
         c.executescript(SCHEMA)
+        # Safe in-place migrations for existing local/Railway databases.
+        _ensure_column(c, 'researches', 'source_status_json', "TEXT NOT NULL DEFAULT '{}'")
+        _ensure_column(c, 'researches', 'analysis_mode', "TEXT NOT NULL DEFAULT 'pending'")
+        _ensure_column(c, 'researches', 'objective', "TEXT NOT NULL DEFAULT 'gtm'")
+        _ensure_column(c, 'researches', 'decision_json', "TEXT NOT NULL DEFAULT '{}'")
+        _ensure_column(c, 'reviews', 'topics_json', 'TEXT')
+        _ensure_column(c, 'reviews', 'barrier', 'TEXT')
+        _ensure_column(c, 'reviews', 'competitor_mentions_json', 'TEXT')
+        _ensure_column(c, 'reviews', 'analysis_mode', 'TEXT')
+        _ensure_column(c, 'reviews', 'window_status', 'TEXT')
 
 
-def create_research(keyword: str, markets: list[str], days: int, sources: list[str]) -> int:
+def create_research(keyword: str, markets: list[str], days: int, sources: list[str], objective: str = 'gtm') -> int:
     with conn() as c:
         cur = c.execute(
-            'INSERT INTO researches(keyword, markets_json, days, sources_json, created_at) VALUES(?,?,?,?,?)',
-            (keyword, json.dumps(markets), days, json.dumps(sources), now_iso()),
+            'INSERT INTO researches(keyword, markets_json, days, sources_json, objective, created_at) VALUES(?,?,?,?,?,?)',
+            (keyword, json.dumps(markets), days, json.dumps(sources), objective, now_iso()),
         )
         return int(cur.lastrowid)
 
@@ -121,13 +146,23 @@ def set_research_status(research_id: int, status: str, progress: int, message: s
         )
 
 
+def set_research_meta(research_id: int, source_status: dict | None = None, analysis_mode: str | None = None, decision: dict | None = None) -> None:
+    with conn() as c:
+        if source_status is not None:
+            c.execute('UPDATE researches SET source_status_json=? WHERE id=?', (json.dumps(source_status, ensure_ascii=False), research_id))
+        if analysis_mode is not None:
+            c.execute('UPDATE researches SET analysis_mode=? WHERE id=?', (analysis_mode, research_id))
+        if decision is not None:
+            c.execute('UPDATE researches SET decision_json=? WHERE id=?', (json.dumps(decision, ensure_ascii=False), research_id))
+
+
 def get_research(research_id: int):
     with conn() as c:
         r = c.execute('SELECT * FROM researches WHERE id=?', (research_id,)).fetchone()
         return dict(r) if r else None
 
 
-def list_researches(limit: int = 20):
+def list_researches(limit: int = 30):
     with conn() as c:
         rows = c.execute('SELECT * FROM researches ORDER BY id DESC LIMIT ?', (limit,)).fetchall()
         return [dict(x) for x in rows]
@@ -154,18 +189,19 @@ def insert_reviews(research_id: int, rows: Iterable[dict]) -> int:
         for r in rows:
             c.execute('''INSERT INTO reviews(
               research_id,source,market,product_external_id,product_title,review_external_id,title,text,rating,author,review_date,url,helpful,
-              sentiment,issue,driver,purchase_impact,scenario
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
+              sentiment,issue,topics_json,driver,barrier,purchase_impact,scenario,competitor_mentions_json,analysis_mode,window_status
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
                 research_id, r.get('source',''), r.get('market','GLOBAL'), r.get('product_external_id'), r.get('product_title'),
                 r.get('review_external_id'), r.get('title'), r.get('text',''), r.get('rating'), r.get('author'), r.get('review_date'),
-                r.get('url'), r.get('helpful'), r.get('sentiment'), r.get('issue'), r.get('driver'), r.get('purchase_impact'), r.get('scenario')
+                r.get('url'), r.get('helpful'), r.get('sentiment'), r.get('issue'), r.get('topics_json'), r.get('driver'), r.get('barrier'),
+                r.get('purchase_impact'), r.get('scenario'), r.get('competitor_mentions_json'), r.get('analysis_mode'), r.get('window_status')
             ))
             n += 1
     return n
 
 
 def insert_trends(research_id: int, rows: Iterable[dict]) -> int:
-    n=0
+    n = 0
     with conn() as c:
         for r in rows:
             c.execute('INSERT INTO trends(research_id,market,date_label,timestamp,value) VALUES(?,?,?,?,?)',
@@ -186,3 +222,33 @@ def clear_research_data(research_id: int) -> None:
     with conn() as c:
         for t in ('products','reviews','trends'):
             c.execute(f'DELETE FROM {t} WHERE research_id=?', (research_id,))
+
+
+def find_previous_comparable_research(research_id: int, keyword: str, markets: list[str], days: int, sources: list[str]):
+    target_markets = sorted(markets)
+    target_sources = sorted(sources)
+    with conn() as c:
+        rows = c.execute(
+            "SELECT * FROM researches WHERE id < ? AND status='completed' AND lower(keyword)=lower(?) AND days=? ORDER BY id DESC LIMIT 50",
+            (research_id, keyword, days),
+        ).fetchall()
+        for row in rows:
+            d = dict(row)
+            try:
+                if sorted(json.loads(d.get('markets_json') or '[]')) != target_markets:
+                    continue
+                if sorted(json.loads(d.get('sources_json') or '[]')) != target_sources:
+                    continue
+            except Exception:
+                continue
+            return d
+    return None
+
+
+def review_exists(research_id: int, source: str, review_external_id: str) -> bool:
+    with conn() as c:
+        row = c.execute(
+            'SELECT 1 FROM reviews WHERE research_id=? AND source=? AND review_external_id=? LIMIT 1',
+            (research_id, source, review_external_id),
+        ).fetchone()
+        return bool(row)

@@ -1,13 +1,23 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Iterable
+import hashlib
+import json
+import os
+import time
 import httpx
 
 BASE='https://serpapi.com/search.json'
+ROOT=Path(__file__).resolve().parents[2]
+CACHE_DIR=Path(os.getenv('DATA_DIR') or os.getenv('RAILWAY_VOLUME_MOUNT_PATH') or (ROOT/'data'))/'cache'/'serpapi'
+CACHE_TTL_SECONDS=int(os.getenv('SERPAPI_CACHE_TTL_SECONDS','21600'))  # 6h; saves quota during repeated testing
+
 
 class SerpApiError(RuntimeError):
     pass
+
 
 class SerpApiClient:
     def __init__(self, api_key: str, timeout: float = 45.0):
@@ -16,15 +26,41 @@ class SerpApiClient:
         self.api_key=api_key
         self.timeout=timeout
 
+    def _cache_path(self, params: dict) -> Path:
+        safe={k:v for k,v in params.items() if k!='api_key'}
+        raw=json.dumps(safe,sort_keys=True,ensure_ascii=False,default=str).encode('utf-8')
+        return CACHE_DIR/(hashlib.sha256(raw).hexdigest()+'.json')
+
+    def _cache_get(self, params: dict):
+        p=self._cache_path(params)
+        if not p.exists(): return None
+        try:
+            payload=json.loads(p.read_text(encoding='utf-8'))
+            if time.time()-float(payload.get('saved_at',0))>CACHE_TTL_SECONDS:return None
+            return payload.get('data')
+        except Exception:
+            return None
+
+    def _cache_set(self, params: dict, data: dict):
+        try:
+            CACHE_DIR.mkdir(parents=True,exist_ok=True)
+            self._cache_path(params).write_text(json.dumps({'saved_at':time.time(),'data':data},ensure_ascii=False),encoding='utf-8')
+        except Exception:
+            pass
+
     def search(self, **params):
-        params={'api_key':self.api_key, **params}
+        cached=self._cache_get(params)
+        if cached is not None:
+            return cached
+        request_params={'api_key':self.api_key, **params}
         with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
-            r=client.get(BASE, params=params)
+            r=client.get(BASE, params=request_params)
             if r.status_code >= 400:
                 raise SerpApiError(f'SerpApi HTTP {r.status_code}: {r.text[:250]}')
             data=r.json()
         if data.get('error'):
             raise SerpApiError(str(data['error']))
+        self._cache_set(params,data)
         return data
 
     def google_shopping(self, keyword: str, market: str, limit: int = 20) -> list[dict]:
@@ -134,9 +170,11 @@ def _currency_from_price(s):
     if '€' in s: return 'EUR'
     return None
 
+
 def _float(v):
     try: return float(v)
     except: return None
+
 
 def _int(v):
     try: return int(v)

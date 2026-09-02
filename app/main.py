@@ -1,27 +1,35 @@
 from __future__ import annotations
 
 import json
+import re
 import threading
+import httpx
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from . import db
-from .analysis import annotate, summarize
-from .collectors.serpapi import SerpApiClient, SerpApiError
-from .config import config_status, get, save_settings
-from .llm import ask_llm, llm_enabled
+from .analysis import annotate_fallback, apply_llm_extraction, summarize
+from .collectors.serpapi import SerpApiClient
+from .config import clear_settings, config_status, get, save_settings
+from .llm import analyze_review_batch, ask_llm, generate_decision_brief, llm_enabled, normalize_topic_labels, test_llm_connection
 from .reports import write_csv, write_docx, write_pdf
+from .importers import parse_evidence_file
+from .demo import seed_portfolio_demo
 
 ROOT=Path(__file__).resolve().parents[1]
 STATIC=ROOT/'static'
 
-app=FastAPI(title='InsightFlow AI',version='1.0.0')
+app=FastAPI(title='InsightFlow AI',version='1.5.0')
 db.init_db()
+
 
 class SettingsIn(BaseModel):
     serpapi_api_key: str | None = None
@@ -29,27 +37,44 @@ class SettingsIn(BaseModel):
     llm_base_url: str | None = None
     llm_model: str | None = None
 
+
+class SettingsClearIn(BaseModel):
+    fields: list[Literal['serpapi','llm']] = Field(default_factory=list)
+
+
 class ResearchIn(BaseModel):
     keyword: str = Field(min_length=2,max_length=160)
     markets: list[str] = Field(default_factory=lambda:['US'])
     days: int = Field(default=180,ge=7,le=1825)
     sources: list[Literal['shopping','walmart','youtube','trends']] = Field(default_factory=lambda:['shopping','walmart','youtube','trends'])
+    objective: Literal['gtm','product_launch','competitor','content'] = 'gtm'
+    depth: Literal['quick','standard','deep','custom'] = 'standard'
     shopping_limit: int = Field(default=20,ge=1,le=50)
-    walmart_products: int = Field(default=3,ge=1,le=8)
-    walmart_review_pages: int = Field(default=2,ge=1,le=10)
-    youtube_videos_per_market: int = Field(default=3,ge=1,le=8)
+    walmart_products: int = Field(default=2,ge=1,le=8)
+    walmart_review_pages: int = Field(default=1,ge=1,le=10)
+    youtube_videos_per_market: int = Field(default=2,ge=1,le=8)
     youtube_comment_pages: int = Field(default=1,ge=1,le=5)
+
 
 class AskIn(BaseModel):
     question: str = Field(min_length=2,max_length=1000)
 
+
 @app.get('/api/health')
 def health():
-    return {'ok':True,'version':'1.0.0','real_data_only':True}
+    return {'ok':True,'version':'1.5.0','real_data_only':True,'portfolio_demo':True}
+
 
 @app.get('/api/config')
 def cfg():
     return config_status()
+
+
+@app.post('/api/demo/load')
+def demo_load():
+    # Static, curated and traceable evidence only: no SerpApi/LLM quota is consumed.
+    return seed_portfolio_demo(force=False)
+
 
 @app.post('/api/settings')
 def settings(payload: SettingsIn):
@@ -59,157 +84,594 @@ def settings(payload: SettingsIn):
         raise HTTPException(403, str(e))
     return config_status()
 
+
+@app.get('/api/connections/test')
+def connection_test():
+    c=config_status()
+    if c['public_deployment']:
+        raise HTTPException(403,'Connector diagnostics are disabled in the public recruiter demo.')
+    result={'serpapi':{'ok':False,'message':'SerpApi is not configured'},'llm':test_llm_connection()}
+    key=get('SERPAPI_API_KEY')
+    if key:
+        try:
+            with httpx.Client(timeout=20) as client:
+                r=client.get('https://serpapi.com/account.json',params={'api_key':key})
+                if r.status_code>=400:
+                    result['serpapi']={'ok':False,'message':f'HTTP {r.status_code}: {r.text[:180]}'}
+                else:
+                    data=r.json()
+                    result['serpapi']={
+                        'ok':True,'message':'SerpApi account reachable',
+                        'plan_name':data.get('plan_name'),'searches_per_month':data.get('searches_per_month'),
+                        'this_month_usage':data.get('this_month_usage'),'searches_left':data.get('total_searches_left') if data.get('total_searches_left') is not None else data.get('plan_searches_left')
+                    }
+        except Exception as e:
+            result['serpapi']={'ok':False,'message':f'{type(e).__name__}: {e}'}
+    return result
+
+
+@app.post('/api/settings/clear')
+def settings_clear(payload: SettingsClearIn):
+    try:
+        clear_settings(payload.fields)
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    return config_status()
+
+
+def _research_payload(r: dict) -> dict:
+    out=dict(r)
+    for key,new_key in [('markets_json','markets'),('sources_json','sources'),('source_status_json','source_status'),('decision_json','decision')]:
+        raw=out.pop(key, None)
+        try: out[new_key]=json.loads(raw or ('{}' if key in {'source_status_json','decision_json'} else '[]'))
+        except Exception: out[new_key]={} if key in {'source_status_json','decision_json'} else []
+    return out
+
+
+def _portfolio_visible(r: dict) -> bool:
+    try:
+        decision=json.loads(r.get('decision_json') or '{}') if 'decision_json' in r else (r.get('decision') or {})
+    except Exception:
+        decision={}
+    meta=(decision.get('demo_meta') or {}) if isinstance(decision,dict) else {}
+    return bool(meta.get('portfolio_demo') or meta.get('portfolio_demo_baseline'))
+
+
+def _require_research(rid: int) -> dict:
+    r=db.get_research(rid)
+    if not r:
+        raise HTTPException(404,'research not found')
+    c=config_status()
+    if c['public_deployment'] and not c['allow_public_live_research'] and not _portfolio_visible(r):
+        # Do not reveal whether a non-demo local research ID exists on the public deployment.
+        raise HTTPException(404,'research not found')
+    return r
+
+
+def _attach_decisions(summary: dict, r: dict) -> dict:
+    rr=_research_payload(r)
+    decision=rr.get('decision') or {}
+    decision_map={x.get('name'):x for x in (decision.get('opportunities') or []) if x.get('name')}
+    for item in summary.get('opportunities') or []:
+        if item.get('name') in decision_map:
+            item['decision']=decision_map[item['name']]
+    summary['research']=rr
+    return summary
+
+
 @app.get('/api/researches')
 def researches():
-    out=[]
-    for r in db.list_researches():
-        r['markets']=json.loads(r.pop('markets_json'))
-        r['sources']=json.loads(r.pop('sources_json'))
-        out.append(r)
-    return out
+    rows=[_research_payload(r) for r in db.list_researches()]
+    c=config_status()
+    if c['public_deployment'] and not c['allow_public_live_research']:
+        # Keep the recruiter deployment scoped to the built-in portfolio snapshots.
+        rows=[r for r in rows if (r.get('decision') or {}).get('demo_meta',{}).get('portfolio_demo') or (r.get('decision') or {}).get('demo_meta',{}).get('portfolio_demo_baseline')]
+    return rows
+
 
 @app.post('/api/research')
 def research_create(payload: ResearchIn):
-    if not get('SERPAPI_API_KEY'):
-        raise HTTPException(400,'SERPAPI_API_KEY 未配置。先在 Settings 填入 SerpApi key。')
+    c=config_status()
+    if c['public_deployment'] and not c['allow_public_live_research']:
+        raise HTTPException(403,'Public demo mode does not allow live API-consuming research. Use a saved research snapshot or run locally.')
+    if payload.sources and not get('SERPAPI_API_KEY'):
+        raise HTTPException(400,'SERPAPI_API_KEY 未配置。先在 Settings 填入 SerpApi key；如果只导入 CSV/JSON，可以取消所有在线数据源。')
     markets=[]
     for m in payload.markets:
         m=m.upper()
         if m not in {'US','AU','UK','CA'}: continue
         if m not in markets: markets.append(m)
     if not markets: markets=['US']
-    rid=db.create_research(payload.keyword.strip(),markets,payload.days,list(payload.sources))
+    rid=db.create_research(payload.keyword.strip(),markets,payload.days,list(payload.sources),payload.objective)
+    if not payload.sources:
+        db.set_research_status(rid,'completed',100,'Research shell created. Import CSV/JSON evidence from Consumer Voice.')
+        return {'id':rid,'status':'completed','estimated_serpapi_calls':0,'depth':payload.depth}
     thread=threading.Thread(target=_run_research,args=(rid,payload,markets),daemon=True)
     thread.start()
-    return {'id':rid,'status':'queued','estimated_serpapi_calls':estimate_calls(payload,markets)}
+    return {'id':rid,'status':'queued','estimated_serpapi_calls':estimate_calls(payload,markets),'depth':payload.depth}
+
 
 @app.get('/api/research/{rid}')
 def research_status(rid:int):
-    r=db.get_research(rid)
-    if not r: raise HTTPException(404,'research not found')
-    r['markets']=json.loads(r.pop('markets_json'));r['sources']=json.loads(r.pop('sources_json'))
-    return r
+    r=_require_research(rid)
+    return _research_payload(r)
+
 
 @app.get('/api/research/{rid}/summary')
 def research_summary(rid:int):
-    r=db.get_research(rid)
-    if not r: raise HTTPException(404,'research not found')
-    return summarize(db.rows_for(rid,'products'),db.rows_for(rid,'reviews'),db.rows_for(rid,'trends'))
+    r=_require_research(rid)
+    markets=json.loads(r['markets_json'])
+    products=db.rows_for(rid,'products');reviews=db.rows_for(rid,'reviews');trends=db.rows_for(rid,'trends')
+    out=_attach_decisions(summarize(products,reviews,trends,markets),r)
+    rr=out['research']
+    baseline=db.find_previous_comparable_research(rid,r['keyword'],markets,r['days'],json.loads(r['sources_json']))
+    if baseline:
+        bmarkets=json.loads(baseline['markets_json'])
+        bproducts=db.rows_for(baseline['id'],'products');breviews=db.rows_for(baseline['id'],'reviews');btrends=db.rows_for(baseline['id'],'trends')
+        common_sources=sorted((set(x.get('source') for x in reviews) & set(x.get('source') for x in breviews)) - {None})
+        cr=[x for x in reviews if x.get('source') in common_sources]
+        br=[x for x in breviews if x.get('source') in common_sources]
+        cs=summarize(products,cr,trends,markets)
+        bs=summarize(bproducts,br,btrends,bmarkets)
+        out['historical_delta']=_summary_delta(cs,bs,rr,_research_payload(baseline),common_sources)
+    else:
+        out['historical_delta']=None
+    return out
+
 
 @app.get('/api/research/{rid}/products')
 def research_products(rid:int):
+    _require_research(rid)
     return db.rows_for(rid,'products')
+
 
 @app.get('/api/research/{rid}/reviews')
 def research_reviews(rid:int,limit:int=Query(500,ge=1,le=5000),offset:int=Query(0,ge=0),source:str|None=None,market:str|None=None,sentiment:str|None=None,issue:str|None=None,q:str|None=None):
+    _require_research(rid)
     rows=db.rows_for(rid,'reviews')
     def ok(x):
         if source and x.get('source')!=source:return False
         if market and x.get('market')!=market:return False
         if sentiment and x.get('sentiment')!=sentiment:return False
-        if issue and x.get('issue')!=issue:return False
-        if q and q.lower() not in (' '.join(str(x.get(k) or '') for k in ['title','text','issue','driver','scenario'])).lower():return False
+        if issue:
+            try: topics=json.loads(x.get('topics_json') or '[]')
+            except Exception: topics=[]
+            if x.get('issue')!=issue and issue not in topics:return False
+        if q and q.lower() not in (' '.join(str(x.get(k) or '') for k in ['title','text','issue','driver','barrier','scenario'])).lower():return False
         return True
     rows=[x for x in rows if ok(x)]
-    return {'total':len(rows),'rows':rows[offset:offset+limit]}
+    return {'total':len(rows),'rows':rows[offset:offset+limit],'offset':offset,'limit':limit,'has_more':offset+limit<len(rows)}
+
+
+@app.post('/api/research/{rid}/import')
+async def research_import(rid:int,file:UploadFile=File(...),max_rows:int=Query(1000,ge=1,le=5000)):
+    r=_require_research(rid)
+    c=config_status()
+    if c['public_deployment'] and not c['allow_public_live_research']:
+        raise HTTPException(403,'Public demo mode does not allow evidence uploads or AI-consuming imports.')
+    if file.content_type and file.content_type not in {'text/csv','application/csv','application/json','text/plain','application/vnd.ms-excel'} and not (file.filename or '').lower().endswith(('.csv','.json','.tsv','.txt')):
+        raise HTTPException(400,'Upload a CSV/TSV or JSON evidence file.')
+    content=await file.read()
+    if len(content)>12*1024*1024: raise HTTPException(413,'File is too large. Maximum 12 MB.')
+    try: rows,meta=parse_evidence_file(content,file.filename or 'evidence.csv',max_rows=max_rows)
+    except Exception as e: raise HTTPException(400,f'Import parse failed: {e}')
+    if not rows: return {'imported':0,'meta':meta,'message':'No rows with a usable text/comment/review field.'}
+    rows,dropped,unknown=_apply_time_window(rows,r['days'])
+    existing=[]
+    for row in rows:
+        if not db.review_exists(rid,row.get('source') or '',row.get('review_external_id') or ''):
+            existing.append(row)
+    clean=_dedupe_reviews(existing)
+    clean,mode,warnings=_analyze_reviews(clean,r['keyword'])
+    db.insert_reviews(rid,clean)
+    rr=_research_payload(db.get_research(rid));status=rr.get('source_status') or {}
+    name=f'Imported evidence · {file.filename or "file"}'
+    status[name]={'status':'ok' if clean else 'partial','count':len(clean),'message':f'{dropped} older rows removed; {unknown} dates unverified; analysis={mode}'}
+    final_mode='hybrid' if rr.get('analysis_mode') not in {mode,'pending','none'} else mode
+    db.set_research_meta(rid,source_status=status,analysis_mode=final_mode)
+    if llm_enabled() and clean:
+        try:
+            products=db.rows_for(rid,'products');all_reviews=db.rows_for(rid,'reviews');trends=db.rows_for(rid,'trends');markets=json.loads(r['markets_json'])
+            temp_summary=summarize(products,all_reviews,trends,markets)
+            decision=generate_decision_brief(r['keyword'],r.get('objective') or 'gtm',temp_summary,_representative_reviews(all_reviews,temp_summary,48))
+            db.set_research_meta(rid,decision=decision)
+        except Exception as e:
+            warnings.append(f'Decision brief refresh: {type(e).__name__}: {e}')
+    return {'imported':len(clean),'dropped_old':dropped,'date_unknown':unknown,'analysis_mode':mode,'warnings':warnings,'meta':meta}
+
 
 @app.get('/api/research/{rid}/trends')
 def research_trends(rid:int):
+    _require_research(rid)
     return db.rows_for(rid,'trends')
+
+
+@app.get('/api/research/{rid}/compare/{baseline_id}')
+def research_compare(rid:int,baseline_id:int):
+    a=_require_research(rid);b=_require_research(baseline_id)
+    sa=summarize(db.rows_for(rid,'products'),db.rows_for(rid,'reviews'),db.rows_for(rid,'trends'),json.loads(a['markets_json']))
+    sb=summarize(db.rows_for(baseline_id,'products'),db.rows_for(baseline_id,'reviews'),db.rows_for(baseline_id,'trends'),json.loads(b['markets_json']))
+    return _summary_delta(sa,sb,_research_payload(a),_research_payload(b))
+
 
 @app.post('/api/research/{rid}/ask')
 def research_ask(rid:int,payload:AskIn):
-    r=db.get_research(rid)
-    if not r: raise HTTPException(404,'research not found')
-    products=db.rows_for(rid,'products');reviews=db.rows_for(rid,'reviews');trends=db.rows_for(rid,'trends');summary=summarize(products,reviews,trends)
-    if llm_enabled():
-        context={'research':r,'summary':summary,'sample_reviews':reviews[:120],'products':products[:40],'trends':trends[-80:]}
-        try:return {'mode':'llm','answer':ask_llm(payload.question,context)}
+    r=_require_research(rid)
+    products=db.rows_for(rid,'products');reviews=db.rows_for(rid,'reviews');trends=db.rows_for(rid,'trends')
+    markets=json.loads(r['markets_json'])
+    summary=_attach_decisions(summarize(products,reviews,trends,markets),r)
+    c=config_status()
+    # Public recruiter mode must never spend the owner's LLM quota. The Ask surface
+    # remains usable through deterministic grounded answers over the saved evidence.
+    if llm_enabled() and not (c['public_deployment'] and not c['allow_public_live_research']):
+        context={
+            'research':_research_payload(r),
+            'summary':{k:v for k,v in summary.items() if k not in {'trends','top_products'}},
+            'representative_evidence':_representative_reviews(reviews,summary,120),
+            'products':products[:40],
+            'trend_summary':summary.get('trend_summary'),
+        }
+        try:return {'mode':'llm-grounded','answer':ask_llm(payload.question,context)}
         except Exception as e:return {'mode':'local-fallback','answer':_local_answer(payload.question,summary,reviews,products),'warning':str(e)}
     return {'mode':'local','answer':_local_answer(payload.question,summary,reviews,products)}
 
+
 @app.get('/api/research/{rid}/export/{kind}')
 def export(rid:int,kind:str):
-    r=db.get_research(rid)
-    if not r: raise HTTPException(404,'research not found')
-    summary=summarize(db.rows_for(rid,'products'),db.rows_for(rid,'reviews'),db.rows_for(rid,'trends'))
+    r=_require_research(rid)
+    markets=json.loads(r['markets_json'])
+    summary=_attach_decisions(summarize(db.rows_for(rid,'products'),db.rows_for(rid,'reviews'),db.rows_for(rid,'trends'),markets),r)
     if kind=='csv':p=write_csv(db.rows_for(rid,'reviews'),rid);media='text/csv'
     elif kind=='docx':p=write_docx(r,summary);media='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     elif kind=='pdf':p=write_pdf(r,summary);media='application/pdf'
     else:raise HTTPException(400,'kind must be csv/docx/pdf')
     return FileResponse(p,media_type=media,filename=p.name)
 
+
+def _depth_values(p:ResearchIn) -> tuple[int,int,int,int]:
+    if p.depth=='quick': return 1,1,1,1
+    if p.depth=='standard': return 2,1,2,1
+    if p.depth=='deep': return 3,2,3,1
+    return p.walmart_products,p.walmart_review_pages,p.youtube_videos_per_market,p.youtube_comment_pages
+
+
 def estimate_calls(p:ResearchIn, markets:list[str])->int:
+    wm_products,wm_pages,yt_videos,yt_pages=_depth_values(p)
     calls=0
     if 'shopping' in p.sources:calls+=len(markets)
     if 'trends' in p.sources:calls+=len(markets)
-    if 'walmart' in p.sources and 'US' in markets:calls+=1+p.walmart_products*p.walmart_review_pages
-    if 'youtube' in p.sources:calls+=len(markets)*(1+p.youtube_videos_per_market*p.youtube_comment_pages)
+    if 'walmart' in p.sources and 'US' in markets:calls+=1+wm_products*wm_pages
+    if 'youtube' in p.sources:calls+=len(markets)*(1+yt_videos*yt_pages)
     return calls
 
+
+def _parse_review_date(value) -> datetime | None:
+    if value is None:return None
+    if isinstance(value,(int,float)):
+        try:return datetime.fromtimestamp(float(value),tz=timezone.utc)
+        except Exception:return None
+    s=str(value).strip()
+    if not s:return None
+    low=s.lower()
+    now=datetime.now(timezone.utc)
+    if low in {'today','just now'}:return now
+    if low=='yesterday':return now-timedelta(days=1)
+    m=re.search(r'(\d+)\s*(minute|hour|day|week|month|year)s?\s+ago',low)
+    if m:
+        n=int(m.group(1));unit=m.group(2)
+        days={'minute':n/1440,'hour':n/24,'day':n,'week':7*n,'month':30*n,'year':365*n}[unit]
+        return now-timedelta(days=days)
+    try:
+        dt=datetime.fromisoformat(s.replace('Z','+00:00'))
+        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+    except Exception:pass
+    for fmt in ('%m/%d/%Y','%Y-%m-%d','%b %d, %Y','%B %d, %Y','%d %b %Y'):
+        try:return datetime.strptime(s,fmt).replace(tzinfo=timezone.utc)
+        except Exception:pass
+    try:
+        dt=parsedate_to_datetime(s)
+        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+    except Exception:return None
+
+
+def _apply_time_window(rows:list[dict],days:int)->tuple[list[dict],int,int]:
+    cutoff=datetime.now(timezone.utc)-timedelta(days=days)
+    kept=[];dropped=0;unknown=0
+    for r in rows:
+        dt=_parse_review_date(r.get('review_date'))
+        if dt is None:
+            r['window_status']='unknown';unknown+=1;kept.append(r);continue
+        if dt>=cutoff:
+            r['window_status']='in_window';kept.append(r)
+        else:
+            dropped+=1
+    return kept,dropped,unknown
+
+
+def _dedupe_reviews(rows:list[dict])->list[dict]:
+    seen=set();clean=[]
+    for x in rows:
+        text=' '.join((x.get('text') or '').split())
+        if not text:continue
+        key=(x.get('source'),x.get('review_external_id') or text[:220])
+        if key in seen:continue
+        seen.add(key);x['text']=text;clean.append(x)
+    return clean
+
+
+def _dedupe_products(rows:list[dict])->list[dict]:
+    out=[];seen=set()
+    for x in rows:
+        k=(x.get('source'),x.get('external_id') or x.get('url') or x.get('title'))
+        if k in seen:continue
+        seen.add(k);out.append(x)
+    return out
+
+
+def _analyze_reviews(rows:list[dict],category:str)->tuple[list[dict],str,list[str]]:
+    if not rows:return rows,'none',[]
+    warnings=[]
+    if not llm_enabled():
+        return [annotate_fallback(r) for r in rows],'local-fallback',warnings
+    llm_count=0;fallback_count=0
+    for start in range(0,len(rows),32):
+        batch=rows[start:start+32]
+        try:
+            extracted=analyze_review_batch(batch,category)
+        except Exception as e:
+            extracted={};warnings.append(f'LLM batch {start//32+1}: {type(e).__name__}: {e}')
+        for i,row in enumerate(batch):
+            if i in extracted:
+                apply_llm_extraction(row,extracted[i]);llm_count+=1
+            else:
+                annotate_fallback(row);fallback_count+=1
+    if llm_count:
+        labels=[]
+        for r in rows:
+            try:labels.extend(json.loads(r.get('topics_json') or '[]'))
+            except Exception:pass
+        try:
+            mapping=normalize_topic_labels(labels,category)
+            for r in rows:
+                try:topics=json.loads(r.get('topics_json') or '[]')
+                except Exception:topics=[]
+                topics=[mapping.get(x,x) for x in topics]
+                r['topics_json']=json.dumps(topics,ensure_ascii=False)
+                if topics:r['issue']=topics[0]
+        except Exception as e:
+            warnings.append(f'Topic normalization: {type(e).__name__}: {e}')
+    mode='llm' if llm_count and not fallback_count else 'hybrid' if llm_count else 'local-fallback'
+    return rows,mode,warnings
+
+
 def _run_research(rid:int,p:ResearchIn,markets:list[str]):
+    source_status={};warnings=[]
+    def mark(name,status,count=0,message=''):
+        source_status[name]={'status':status,'count':count,'message':message}
+        db.set_research_meta(rid,source_status=source_status)
     try:
         db.clear_research_data(rid);db.set_research_status(rid,'running',2,'Starting real-data collection')
         client=SerpApiClient(get('SERPAPI_API_KEY'))
-        products=[];reviews=[];trends=[];step=3
+        products=[];reviews=[];trends=[]
+        wm_products_n,wm_pages,yt_videos_n,yt_pages=_depth_values(p)
+
         if 'shopping' in p.sources:
-            for m in markets:
-                db.set_research_status(rid,'running',min(20,step),f'Google Shopping · {m}')
-                products.extend(client.google_shopping(p.keyword,m,p.shopping_limit));step+=3
+            for i,m in enumerate(markets,1):
+                name=f'Google Shopping · {m}';db.set_research_status(rid,'running',6+2*i,f'Collecting {name}')
+                try:
+                    rows=client.google_shopping(p.keyword,m,p.shopping_limit);products.extend(rows);mark(name,'ok',len(rows))
+                except Exception as e:
+                    msg=f'{type(e).__name__}: {e}';warnings.append(f'{name}: {msg}');mark(name,'failed',0,msg)
+
         walmart_products=[]
         if 'walmart' in p.sources and 'US' in markets:
-            db.set_research_status(rid,'running',25,'Walmart search')
-            walmart_products=client.walmart_search(p.keyword,max(p.walmart_products,8));products.extend(walmart_products)
-            for i,prod in enumerate(walmart_products[:p.walmart_products],1):
-                db.set_research_status(rid,'running',28+int(20*i/max(1,p.walmart_products)),f'Walmart reviews {i}/{p.walmart_products}')
-                reviews.extend(client.walmart_reviews(prod,p.walmart_review_pages))
+            name='Walmart products · US';db.set_research_status(rid,'running',24,'Collecting Walmart products')
+            try:
+                walmart_products=client.walmart_search(p.keyword,max(wm_products_n,8));products.extend(walmart_products);mark(name,'ok',len(walmart_products))
+            except Exception as e:
+                msg=f'{type(e).__name__}: {e}';warnings.append(f'{name}: {msg}');mark(name,'failed',0,msg)
+            if walmart_products:
+                got=0;fails=0
+                for i,prod in enumerate(walmart_products[:wm_products_n],1):
+                    db.set_research_status(rid,'running',28+int(15*i/max(1,wm_products_n)),f'Walmart reviews {i}/{wm_products_n}')
+                    try:
+                        rs=client.walmart_reviews(prod,wm_pages);reviews.extend(rs);got+=len(rs)
+                    except Exception as e:
+                        fails+=1;warnings.append(f"Walmart reviews · {prod.get('title','product')[:50]}: {type(e).__name__}: {e}")
+                mark('Walmart reviews · US','partial' if fails else 'ok',got,f'{fails} product(s) failed' if fails else '')
+
         if 'youtube' in p.sources:
             for mi,m in enumerate(markets,1):
-                db.set_research_status(rid,'running',55+int(12*mi/max(1,len(markets))),f'YouTube search · {m}')
-                vids=client.youtube_search(p.keyword,m,p.youtube_videos_per_market)
+                name=f'YouTube discovery · {m}';db.set_research_status(rid,'running',48+int(8*mi/max(1,len(markets))),f'YouTube search · {m}')
+                try:
+                    vids=client.youtube_search(p.keyword,m,yt_videos_n);mark(name,'ok',len(vids))
+                except Exception as e:
+                    vids=[];msg=f'{type(e).__name__}: {e}';warnings.append(f'{name}: {msg}');mark(name,'failed',0,msg)
+                got=0;fails=0
                 for vid in vids:
-                    reviews.extend(client.youtube_comments(vid,p.youtube_comment_pages))
+                    try:
+                        rs=client.youtube_comments(vid,yt_pages);reviews.extend(rs);got+=len(rs)
+                    except Exception as e:
+                        fails+=1;warnings.append(f"YouTube comments · {vid.get('title','video')[:50]}: {type(e).__name__}: {e}")
+                if vids:mark(f'YouTube comments · discovered via {m}','partial' if fails else 'ok',got,f'{fails} video(s) failed' if fails else f'GLOBAL comments; not attributed to {m}')
+
         if 'trends' in p.sources:
             for mi,m in enumerate(markets,1):
-                db.set_research_status(rid,'running',72+int(8*mi/max(1,len(markets))),f'Google Trends · {m}')
-                trends.extend(client.google_trends(p.keyword,m,p.days))
-        db.set_research_status(rid,'running',84,'Analyzing collected real reviews')
-        # de-dupe before analysis
-        seen=set();clean=[]
-        for x in reviews:
-            text=' '.join((x.get('text') or '').split())
-            if not text:continue
-            key=(x.get('source'),x.get('review_external_id') or text[:180])
-            if key in seen:continue
-            seen.add(key);x['text']=text;clean.append(annotate(x))
-        # de-dupe products
-        ps=[];seenp=set()
-        for x in products:
-            k=(x.get('source'),x.get('external_id') or x.get('url') or x.get('title'))
-            if k in seenp:continue
-            seenp.add(k);ps.append(x)
+                name=f'Google Trends · {m}';db.set_research_status(rid,'running',64+int(8*mi/max(1,len(markets))),f'Google Trends · {m}')
+                try:
+                    rows=client.google_trends(p.keyword,m,p.days);trends.extend(rows);mark(name,'ok',len(rows),'Normalized within each market; absolute levels are not cross-market volume.')
+                except Exception as e:
+                    msg=f'{type(e).__name__}: {e}';warnings.append(f'{name}: {msg}');mark(name,'failed',0,msg)
+
+        db.set_research_status(rid,'running',76,'Applying time window and deduplicating evidence')
+        reviews,dropped,unknown=_apply_time_window(reviews,p.days)
+        mark('Time-window validation','partial' if unknown else 'ok',len(reviews),f'{dropped} older rows removed; {unknown} rows have unknown/unparseable date')
+        clean=_dedupe_reviews(reviews)
+        ps=_dedupe_products(products)
+
+        db.set_research_status(rid,'running',82,'AI structuring: topics, drivers, barriers and scenarios')
+        clean,analysis_mode,analysis_warnings=_analyze_reviews(clean,p.keyword)
+        warnings.extend(analysis_warnings)
+        db.set_research_meta(rid,source_status=source_status,analysis_mode=analysis_mode)
+
+        db.set_research_status(rid,'running',92,'Saving auditable evidence')
         db.insert_products(rid,ps);db.insert_reviews(rid,clean);db.insert_trends(rid,trends)
-        db.set_research_status(rid,'completed',100,f'Completed: {len(ps)} products, {len(clean)} real reviews/comments, {len(trends)} trend points')
+        decision={}
+        if llm_enabled() and clean:
+            try:
+                temp_summary=summarize(ps,clean,trends,markets)
+                decision=generate_decision_brief(p.keyword,p.objective,temp_summary,_representative_reviews(clean,temp_summary,48))
+                db.set_research_meta(rid,decision=decision)
+            except Exception as e:
+                warnings.append(f'Decision brief: {type(e).__name__}: {e}')
+        total=len(ps)+len(clean)+len(trends)
+        if total==0:
+            db.set_research_status(rid,'failed',100,'No real evidence was collected. Check connector errors and API configuration.')
+            return
+        suffix=f' · {len(warnings)} warning(s)' if warnings else ''
+        db.set_research_status(rid,'completed',100,f'Completed: {len(ps)} products, {len(clean)} consumer voices, {len(trends)} trend points · analysis={analysis_mode}{suffix}')
     except Exception as e:
+        db.set_research_meta(rid,source_status=source_status)
         db.set_research_status(rid,'failed',100,f'{type(e).__name__}: {e}')
+
+
+def _representative_reviews(reviews:list[dict],summary:dict,limit:int)->list[dict]:
+    selected=[];seen=set()
+    def add(row):
+        key=row.get('id') or (row.get('source'),row.get('review_external_id'),row.get('text','')[:100])
+        if key not in seen and len(selected)<limit:
+            seen.add(key);selected.append(row)
+    # First cover major topics across multiple sources.
+    for topic in (summary.get('issues') or [])[:10]:
+        candidates=[]
+        for r in reviews:
+            try:topics=json.loads(r.get('topics_json') or '[]')
+            except Exception:topics=[]
+            if topic['name'] in topics or r.get('issue')==topic['name']:candidates.append(r)
+        by_source=defaultdict(list)
+        for r in candidates:by_source[r.get('source')].append(r)
+        for rows in by_source.values():
+            for r in rows[:3]:add(r)
+    # Then ensure each source appears.
+    by_source=defaultdict(list)
+    for r in reviews:by_source[r.get('source')].append(r)
+    for rows in by_source.values():
+        for r in rows[:8]:add(r)
+    for r in reviews:
+        add(r)
+        if len(selected)>=limit:break
+    return selected
+
+
+def _summary_delta(current:dict,baseline:dict,current_research:dict,baseline_research:dict,common_sources:list[str]|None=None)->dict:
+    def topic_map(x): return {z['name']:z for z in x.get('issues') or []}
+    a=topic_map(current);b=topic_map(baseline)
+    changes=[]
+    for name in set(a)|set(b):
+        av=(a.get(name) or {}).get('share',0);bv=(b.get(name) or {}).get('share',0)
+        delta=round(av-bv,1)
+        cur=(a.get(name) or {})
+        stage='Accelerating' if delta>=5 and av>=3 else 'Emerging' if delta>=2 else 'Cooling' if delta<=-2 else 'Stable'
+        changes.append({
+            'name':name,'current_share':av,'baseline_share':bv,'delta_pp':delta,'stage':stage,
+            'current_count':cur.get('count',0),'confidence':cur.get('confidence','Low')
+        })
+    changes.sort(key=lambda x:(0 if x['stage']=='Stable' else 1,abs(x['delta_pp'])),reverse=True)
+    ctm={x['market']:x for x in current.get('trend_summary') or []}
+    btm={x['market']:x for x in baseline.get('trend_summary') or []}
+    momentum=[]
+    for market in set(ctm)|set(btm):
+        cv=(ctm.get(market) or {}).get('relative_growth_pct');bv=(btm.get(market) or {}).get('relative_growth_pct')
+        momentum.append({
+            'market':market,'current_growth_pct':cv,'baseline_growth_pct':bv,
+            'delta_pp':round(cv-bv,1) if cv is not None and bv is not None else None
+        })
+    comparable=bool(common_sources) and current.get('review_count',0)>=10 and baseline.get('review_count',0)>=10
+    return {
+        'current':current_research,'baseline':baseline_research,
+        'common_sources':common_sources or [],'comparable':comparable,
+        'sample_delta':current.get('review_count',0)-baseline.get('review_count',0),
+        'product_delta':current.get('product_count',0)-baseline.get('product_count',0),
+        'topic_changes':changes[:12],'search_momentum_changes':momentum,
+        'note':'Historical topic deltas use only consumer-voice sources present in both runs. They are descriptive, not population incidence.',
+    }
+
 
 def _local_answer(question:str,summary:dict,reviews:list[dict],products:list[dict])->str:
     q=question.lower()
-    if not reviews and ('review' in q or '评论' in q or '痛点' in q):
-        return '当前研究没有抓到真实评论正文。请检查 Walmart / YouTube 数据源是否启用，以及 API 调用是否成功。系统不会用 synthetic 数据补空。'
+    research=summary.get('research') or {}
+    demo=(research.get('decision') or {}).get('demo_meta') or {}
+    opportunities=summary.get('opportunities') or []
+    decisions=[x for x in opportunities if (x.get('decision') or {}).get('insight')]
+
+    if any(k in q for k in ['us and au','us vs au','us/au','美国','澳洲','澳大利亚','market comparison','compare market']):
+        mc=summary.get('market_comparison') or {}
+        if not mc.get('available'):
+            return ('当前证据不支持 US 与 AU 的消费者偏好比较。\n\n'
+                    f"原因：{mc.get('reason') or 'consumer-voice source coverage is not comparable'}\n\n"
+                    '可以比较两地的商品/零售信号，但不能把 GLOBAL Reddit / YouTube 等消费者声音硬归因到某个国家。这个限制是为了避免制造漂亮但错误的市场结论。')
+        return '当前可比消费者来源：'+', '.join(mc.get('common_sources') or [])+'。\n'+ '\n'.join(
+            f"{m}: n={v.get('sample',0)}; top topics="+', '.join(x['name'] for x in (v.get('top_topics') or [])[:4]) for m,v in (mc.get('markets') or {}).items())
+
+    if any(k in q for k in ['weak','弱','不足','confidence','可信','证据质量','evidence quality']):
+        conf=summary.get('evidence_confidence') or {}
+        issues=summary.get('issues') or []
+        low=[x for x in issues if x.get('confidence')=='Low'][:5]
+        mc=summary.get('market_comparison') or {}
+        parts=[f"整体 evidence confidence：{conf.get('label','—')} ({conf.get('score','—')}/100)。"]
+        if low: parts.append('低置信度主题：'+ '；'.join(f"{x['name']} ({x['count']} rows, {x['source_count']} source)" for x in low))
+        if not mc.get('available'): parts.append('跨市场消费者比较仍被阻断：'+str(mc.get('reason') or 'coverage gap'))
+        if summary.get('window_unknown_count'): parts.append(f"另有 {summary['window_unknown_count']} 条证据日期无法验证。")
+        parts.append('下一步优先增加独立来源和可比市场样本，而不是让模型把同一批数据总结得更长。')
+        return '\n\n'.join(parts)
+
+    if any(k in q for k in ['product team','产品团队','产品优先','validate first','验证 first','先验证']):
+        if decisions:
+            x=decisions[0];d=x['decision']
+            return (f"第一优先：{x['name']}。\n\n证据解释：{d.get('insight','—')}\n\n"
+                    f"Product Action：{d.get('product_action','—')}\n\nNext Validation：{d.get('next_validation','—')}\n\n"
+                    f"Confidence：{x.get('confidence','—')}；这仍是验证优先级，不是市场规模结论。")
+        return '当前没有足够的 evidence-backed decision。先增加消费者样本与 competitor benchmark。'
+
+    if any(k in q for k in ['gtm message','message','定位','传播','卖点','marketing','gTM'.lower()]):
+        if decisions:
+            x=decisions[0];d=x['decision']
+            return (f"当前最有证据支持的 GTM 方向来自「{x['name']}」：\n\n{d.get('gtm_action','—')}\n\n"
+                    f"为什么：{d.get('insight','—')}\n\n"
+                    '建议把它写成可证明的 proof point，而不是泛化成“用户都更喜欢”。')
+        drivers=summary.get('drivers') or []
+        return '当前可用 positive drivers：\n'+'\n'.join(f"- {x['name']} ({x['count']})" for x in drivers[:5]) if drivers else '当前正面驱动证据不足。'
+
+    if not reviews and any(k in q for k in ['review','评论','痛点','consumer']):
+        return '当前研究没有真实消费者文本。请检查数据源状态；系统不会用 synthetic 数据补空。'
+
     if any(k in q for k in ['痛点','问题','barrier','issue','最值得']):
         xs=summary.get('issues',[])[:5]
-        if not xs:return '当前真实样本中没有识别出足够的具体痛点。'
-        return '当前真实数据的 Top issues：\n'+ '\n'.join(f"{i+1}. {x['name']}：{x['count']} 条，占 {x['share']}%，购买影响率 {x['purchase_impact_rate']}%" for i,x in enumerate(xs))+'\n\n这些是规则化抽取结果，建议点击 Evidence 回看原文。'
-    if any(k in q for k in ['正面','driver','为什么买','卖点']):
+        if not xs:return '当前真实样本中没有识别出足够稳定的消费者主题。'
+        return '当前 Top topics / barriers：\n'+ '\n'.join(f"{i+1}. {x['name']}：{x['count']} 条，sample share {x['share']}%，decision-impact {x['purchase_impact_rate']}%，confidence {x['confidence']}" for i,x in enumerate(xs))+'\n\n请点击 Consumer Voice 回看来源再下结论。'
+
+    if any(k in q for k in ['正面','driver','为什么买']):
         xs=summary.get('drivers',[])[:5]
-        return 'Top positive drivers：\n'+'\n'.join(f"{i+1}. {x['name']}：{x['count']} 条" for i,x in enumerate(xs)) if xs else '当前真实样本里正面驱动信号不足。'
+        return 'Top positive drivers：\n'+'\n'.join(f"{i+1}. {x['name']}：{x['count']} 条" for i,x in enumerate(xs)) if xs else '当前样本里正面驱动信号不足。'
+
     if any(k in q for k in ['机会','opportunity','新品','做什么']):
-        xs=summary.get('opportunities',[])[:5]
-        return 'Opportunity hypotheses（不是“市场确定空白”）：\n'+'\n'.join(f"{i+1}. {x['name']}：{x['opportunity_score']}/100；benchmark coverage proxy {x['benchmark_coverage']}%" for i,x in enumerate(xs))+'\n\n下一步要用供应链、成本、实物 benchmark 和更大真实样本验证。'
+        xs=opportunities[:5]
+        if not xs:return '当前 evidence 不足以生成 opportunity hypothesis。'
+        lines=[]
+        for i,x in enumerate(xs):
+            d=x.get('decision') or {}
+            lines.append(f"{i+1}. {x['name']}：priority {x['opportunity_score']}/100；{x['confidence']} confidence"+(f"；next={d.get('next_validation')}" if d.get('next_validation') else ''))
+        return 'Opportunity hypotheses（不是市场空白证明）：\n'+'\n'.join(lines)+'\n\n优先级用于决定下一步验证资源，不代表 TAM / revenue。'
+
     if any(k in q for k in ['销量','畅销','best seller','产品']):
         xs=products[:10]
-        return '系统不会把评论量冒充销量。当前可展示的是真实商品结果中的排名/价格/评分/review count：\n'+'\n'.join(f"{i+1}. [{x.get('source')}] {x.get('title')} | price={x.get('price')} {x.get('currency') or ''} | rating={x.get('rating')} | reviews={x.get('review_count')}" for i,x in enumerate(xs))
-    return f"当前研究已收集 {summary['review_count']} 条真实评论/公开评论、{summary['product_count']} 个真实商品结果、{summary['trend_points']} 个趋势点。你可以问：Top痛点、正面购买驱动、新品机会假设、头部商品信号，或配置 LLM 后进行更自由的跨表分析。"
+        return '系统不会把 review count 冒充销量。当前可展示的是商品事实/零售信号：\n'+'\n'.join(f"{i+1}. [{x.get('source')}] {x.get('title')} | price={x.get('price')} {x.get('currency') or ''} | rating={x.get('rating')} | reviews={x.get('review_count')}" for i,x in enumerate(xs))
+
+    if demo.get('executive_recommendation'):
+        return (f"当前决策摘要：{demo['executive_recommendation']}\n\n"
+                f"Evidence confidence：{summary.get('evidence_confidence',{}).get('label','—')}。"
+                '你可以继续问：产品先验证什么、GTM message、US vs AU 是否可比、证据哪里最弱。')
+    return f"当前研究已收集 {summary['review_count']} 条消费者证据、{summary['product_count']} 个商品结果、{summary['trend_points']} 个趋势点。Evidence confidence: {summary['evidence_confidence']['label']}。配置 LLM 后可以进行更自由的证据检索与跨表分析。"
+
 
 app.mount('/',StaticFiles(directory=STATIC,html=True),name='static')
