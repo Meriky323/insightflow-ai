@@ -8,7 +8,7 @@
 <title>InsightFlow AI · Consumer & GTM Intelligence</title>
 <link rel="stylesheet" href="/styles.css"/>
 </head>
-<body>
+<body><div class="ambient-grain" aria-hidden="true"></div><div class="cursor-aura" aria-hidden="true"></div>
 <div id="portfolioView" class="portfolio-view">
   <header class="site-nav">
     <a class="wordmark" href="/" aria-label="InsightFlow AI home"><span class="mark">IF</span><span><b>InsightFlow AI</b><small data-i18n="brandTag">Consumer & GTM Intelligence</small></span></a>
@@ -25,90 +25,115 @@
   </header>
 
   <main>
-    <section class="hero-section">
-      <div class="hero-copy">
-        <span class="eyebrow" data-i18n="heroEyebrow">AI × OVERSEAS CONSUMER INTELLIGENCE</span>
+    <section class="hero-v2" id="top">
+      <div class="hero-v2-copy" data-reveal>
+        <div class="hero-kicker"><span class="pulse-dot"></span><span data-i18n="heroEyebrow">AI × OVERSEAS CONSUMER INTELLIGENCE</span></div>
         <h1 data-i18n-html="heroTitle">Turn fragmented consumer signals into <em>evidence-backed</em> GTM decisions.</h1>
-        <p class="hero-lede" data-i18n="heroLede">A portfolio-grade research system that connects market signals, consumer voice and competitor evidence — then converts them into Product Action, GTM Action and Next Validation.</p>
+        <p class="hero-v2-lede" data-i18n="heroLede">A portfolio-grade research system that connects market signals, consumer voice and competitor evidence — then converts them into Product Action, GTM Action and Next Validation.</p>
         <div class="hero-actions">
-          <button class="button button-primary button-lg" id="heroDemoBtn" data-i18n="exploreFlagship">Explore flagship case →</button>
-          <a class="button button-secondary button-lg" href="/case-study.html" target="_blank" rel="noopener" data-i18n="readCase">Read case study</a>
+          <button class="button button-primary button-lg magnetic" id="heroDemoBtn" data-i18n="exploreFlagship">Explore flagship case →</button>
+          <a class="button button-quiet button-lg" href="/case-study.html" target="_blank" rel="noopener" data-i18n="readCase">Read case study ↗</a>
         </div>
-        <div class="trust-strip">
-          <span data-i18n="trust1">✓ Traceable evidence</span>
-          <span data-i18n="trust2">✓ No synthetic reviews</span>
-          <span data-i18n="trust3">✓ Decision guardrails</span>
+        <div class="hero-proof-inline">
+          <span><b>32</b><small data-i18n="metricSignals">traceable consumer signals</small></span>
+          <span><b>8</b><small data-i18n="metricProducts">competitor / retail signals</small></span>
+          <span><b>0</b><small data-i18n="metricKeys">API keys required for recruiter demo</small></span>
         </div>
       </div>
-      <div class="hero-console">
-        <div class="console-head"><span data-i18n="flagshipCase">FLAGSHIP CASE</span><b>10K Magnetic Power Bank</b><small>US · AU</small></div>
-        <div class="signal-card accent">
-          <div class="signal-meta"><span>01</span><small data-i18n="emergingSignal">EMERGING SIGNAL</small></div>
-          <h3 data-i18n="heroSignalTitle">Portability is becoming a usage constraint</h3>
-          <p data-i18n="heroSignalText">Users are not asking only about capacity. They are asking whether a 10K pack is comfortable while attached to the phone.</p>
-        </div>
-        <div class="decision-row">
-          <article><small data-i18n="productActionLabel">PRODUCT ACTION</small><b data-i18n="heroProductAction">Benchmark thickness, footprint and thermals</b></article>
-          <article><small data-i18n="gtmActionLabel">GTM ACTION</small><b data-i18n="heroGtmAction">Lead with usable-in-hand portability</b></article>
-        </div>
-        <div class="guardrail-card"><span data-i18n="guardrailLabel">GUARDRAIL</span><p data-i18n="heroGuardrail">US/AU consumer preference comparison is blocked until comparable voice data exists in both markets.</p></div>
+      <div class="hero-signal-stage" data-reveal data-delay="120" aria-label="Evidence to decision visualization">
+        <div class="stage-toolbar"><span>LIVE RESEARCH CHAIN</span><span class="stage-live"><i></i> EVIDENCE FIRST</span></div>
+        <svg class="evidence-map" viewBox="0 0 720 520" role="img" aria-label="Evidence thread visualization">
+          <defs>
+            <linearGradient id="threadGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b6cff"/><stop offset="1" stop-color="#22b8a7"/></linearGradient>
+            <filter id="softGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path class="thread thread-a" d="M120 92 C270 92 250 240 356 260"/>
+          <path class="thread thread-b" d="M120 190 C250 190 260 250 356 260"/>
+          <path class="thread thread-c" d="M120 300 C260 300 270 270 356 260"/>
+          <path class="thread thread-d" d="M120 405 C270 405 270 300 356 260"/>
+          <path class="thread decision-thread" d="M405 260 C520 260 535 158 616 158"/>
+          <path class="thread decision-thread" d="M405 260 C520 260 535 360 616 360"/>
+          <g class="source-node" transform="translate(36 70)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Community</text><text class="sub" x="62" y="38">Reddit / forums</text></g>
+          <g class="source-node" transform="translate(36 168)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Commerce</text><text class="sub" x="62" y="38">Walmart / reviews</text></g>
+          <g class="source-node" transform="translate(36 278)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Content</text><text class="sub" x="62" y="38">YouTube comments</text></g>
+          <g class="source-node" transform="translate(36 383)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Search</text><text class="sub" x="62" y="38">Google Trends</text></g>
+          <g class="insight-node" transform="translate(326 215)" filter="url(#softGlow)"><rect width="158" height="90" rx="24"/><text x="79" y="37" text-anchor="middle">PORTABILITY</text><text class="sub" x="79" y="60" text-anchor="middle">18 rows · 3 sources</text></g>
+          <g class="decision-node" transform="translate(548 112)"><rect width="150" height="92" rx="20"/><text x="18" y="28">PRODUCT</text><text class="sub" x="18" y="52">Reduce attached</text><text class="sub" x="18" y="69">footprint + heat</text></g>
+          <g class="decision-node" transform="translate(548 314)"><rect width="150" height="92" rx="20"/><text x="18" y="28">GTM</text><text class="sub" x="18" y="52">Prove one-hand</text><text class="sub" x="18" y="69">use in context</text></g>
+          <circle class="traveler t1" r="4"><animateMotion dur="4s" repeatCount="indefinite" path="M120 92 C270 92 250 240 356 260"/></circle>
+          <circle class="traveler t2" r="4"><animateMotion dur="4.6s" repeatCount="indefinite" path="M120 300 C260 300 270 270 356 260"/></circle>
+          <circle class="traveler t3" r="4"><animateMotion dur="5.1s" repeatCount="indefinite" path="M120 405 C270 405 270 300 356 260"/></circle>
+        </svg>
+        <div class="stage-caption"><span data-i18n="trust1">✓ Traceable evidence</span><span data-i18n="trust3">✓ Decision guardrails</span></div>
       </div>
+      <a class="scroll-cue" href="#product-tour" aria-label="Scroll to product tour"><span></span><small>SCROLL TO TRACE THE SIGNAL</small></a>
     </section>
 
-    <section class="proof-band" aria-label="Project proof points">
-      <div><b>32</b><span data-i18n="metricSignals">traceable consumer signals</span></div>
-      <div><b>8</b><span data-i18n="metricProducts">competitor / retail signals</span></div>
-      <div><b>2</b><span data-i18n="metricPeriods">historical periods</span></div>
-      <div><b>0</b><span data-i18n="metricKeys">API keys required for recruiter demo</span></div>
+    <section class="source-marquee" aria-label="Research sources">
+      <div class="source-track"><span>Google Shopping</span><i>•</i><span>Walmart Reviews</span><i>•</i><span>Reddit / Forums</span><i>•</i><span>YouTube</span><i>•</i><span>Google Trends</span><i>•</i><span>CSV / JSON</span><i>•</i><span>Social Listening Export</span><i>•</i><span>Google Shopping</span><i>•</i><span>Walmart Reviews</span><i>•</i><span>Reddit / Forums</span><i>•</i><span>YouTube</span></div>
     </section>
 
-    <section id="workflow" class="section-wrap">
-      <div class="section-heading"><span class="eyebrow" data-i18n="workflowEyebrow">THE WORKFLOW</span><h2 data-i18n="workflowTitle">Built around a business decision, not around a chatbot.</h2><p data-i18n="workflowLead">The model is useful only after evidence is scoped, normalized and made comparable.</p></div>
-      <div class="workflow-grid">
-        <article><span>01</span><h3 data-i18n="step1Title">Frame the decision</h3><p data-i18n="step1Text">Start with a product launch, GTM, competitor or messaging question.</p></article>
-        <article><span>02</span><h3 data-i18n="step2Title">Build the evidence layer</h3><p data-i18n="step2Text">Normalize search, retail, community and imported data with source, market and date boundaries.</p></article>
-        <article><span>03</span><h3 data-i18n="step3Title">Structure consumer voice</h3><p data-i18n="step3Text">Extract topics, drivers, barriers, scenarios and purchase impact with auditable evidence.</p></article>
-        <article><span>04</span><h3 data-i18n="step4Title">Turn signals into action</h3><p data-i18n="step4Text">Prioritize opportunities and state Product Action, GTM Action and the next validation step.</p></article>
+    <section class="story-section" id="product-tour">
+      <div class="story-sticky" data-reveal>
+        <span class="eyebrow">01 · PRODUCT EXPERIENCE</span>
+        <h2 data-i18n="workflowTitle">Built around a business decision, not around a chatbot.</h2>
+        <p data-i18n="workflowLead">The model is useful only after evidence is scoped, normalized and made comparable.</p>
+        <button class="inline-link magnetic" id="storyDemoBtn" data-i18n="openDemo">Open demo →</button>
       </div>
-    </section>
-
-    <section class="section-wrap compact-section">
-      <div class="section-heading"><span class="eyebrow" data-i18n="capEyebrow">WHAT THE SYSTEM DOES</span><h2 data-i18n="capTitle">Five surfaces. One research chain.</h2></div>
-      <div class="capability-grid">
-        <article><i>01</i><h3 data-i18n="capOverview">Executive Snapshot</h3><p data-i18n="capOverviewText">Business question, recommendation, confidence and decision boundaries in one screen.</p></article>
-        <article><i>02</i><h3 data-i18n="capTrend">Trend Radar</h3><p data-i18n="capTrendText">Compare historical topic share and search momentum without pretending it is market size.</p></article>
-        <article><i>03</i><h3 data-i18n="capVoice">Consumer Voice</h3><p data-i18n="capVoiceText">Trace every topic and barrier back to real source text.</p></article>
-        <article><i>04</i><h3 data-i18n="capComp">Competitor Benchmark</h3><p data-i18n="capCompText">Connect product facts with consumer evidence rather than showing a product list.</p></article>
-        <article><i>05</i><h3 data-i18n="capOpp">Opportunity Board</h3><p data-i18n="capOppText">Evidence → insight → Product Action → GTM Action → Next Validation.</p></article>
-      </div>
-    </section>
-
-    <section id="cases" class="section-wrap case-showcase">
-      <div class="section-heading"><span class="eyebrow" data-i18n="casesEyebrow">PROOF OF GENERALIZATION</span><h2 data-i18n="casesTitle">Same logic, different categories.</h2><p data-i18n="casesLead">The project is deliberately tested beyond one hard-coded product category.</p></div>
-      <div class="case-grid">
-        <article class="case-featured">
-          <div><span class="case-tag" data-i18n="flagshipTag">FLAGSHIP</span><h3>Magnetic Power Bank · US / AU</h3><p data-i18n="powerCaseText">A two-period evidence snapshot for portability, thermals, device fit and GTM proof points.</p></div>
-          <button class="button button-light" id="caseDemoBtn" data-i18n="openWorkspace">Open decision workspace →</button>
+      <div class="story-stack">
+        <article class="story-card story-dark spotlight-card" data-reveal>
+          <div class="story-number">01</div><div><small>FRAME</small><h3 data-i18n="step1Title">Frame the decision</h3><p data-i18n="step1Text">Start with a product launch, GTM, competitor or messaging question.</p></div>
+          <div class="micro-ui question-ui"><span>Business question</span><b>What should a 10K magnetic power bank prove before launch?</b></div>
         </article>
-        <article class="case-target">
-          <div><span class="case-tag" data-i18n="targetTag">TARGET-COMPANY CASE</span><h3>Insta360 X6 · Launch Intelligence</h3><p data-i18n="x6CaseText">A launch case asking whether workflow maturity can become a stronger moat than hardware specs alone.</p></div>
-          <a class="button button-secondary" href="/case-insta360-x6.html" target="_blank" rel="noopener" data-i18n="openX6">Open X6 case →</a>
+        <article class="story-card spotlight-card" data-reveal>
+          <div class="story-number">02</div><div><small>GROUND</small><h3 data-i18n="step2Title">Build the evidence layer</h3><p data-i18n="step2Text">Normalize search, retail, community and imported data with source, market and date boundaries.</p></div>
+          <div class="micro-ui source-ui"><span class="source-pill">Reddit</span><span class="source-pill">Walmart</span><span class="source-pill">YouTube</span><span class="source-pill">Trends</span></div>
+        </article>
+        <article class="story-card spotlight-card" data-reveal>
+          <div class="story-number">03</div><div><small>STRUCTURE</small><h3 data-i18n="step3Title">Structure consumer voice</h3><p data-i18n="step3Text">Extract topics, drivers, barriers, scenarios and purchase impact with auditable evidence.</p></div>
+          <div class="micro-ui topic-ui"><b>Portability & slimness</b><span>18 evidence · 3 sources</span><div><i style="width:72%"></i></div></div>
+        </article>
+        <article class="story-card story-accent spotlight-card" data-reveal>
+          <div class="story-number">04</div><div><small>DECIDE</small><h3 data-i18n="step4Title">Turn signals into action</h3><p data-i18n="step4Text">Prioritize opportunities and state Product Action, GTM Action and the next validation step.</p></div>
+          <div class="micro-ui action-ui"><span>PRODUCT</span><b>Benchmark thickness + thermals</b><span>GTM</span><b>Prove one-hand use</b></div>
         </article>
       </div>
     </section>
 
-    <section id="method" class="section-wrap integrity-section">
-      <div class="section-heading"><span class="eyebrow" data-i18n="integrityEyebrow">RESEARCH INTEGRITY</span><h2 data-i18n="integrityTitle">The system is designed to know when not to claim something.</h2></div>
-      <div class="integrity-grid">
-        <article><span>01</span><h3 data-i18n="integrity1Title">Evidence confidence</h3><p data-i18n="integrity1Text">Sample size and source diversity affect confidence. A score is prioritization, not certainty.</p></article>
-        <article><span>02</span><h3 data-i18n="integrity2Title">Cross-market comparability</h3><p data-i18n="integrity2Text">US vs AU consumer conclusions are blocked unless comparable voice sources exist in both markets.</p></article>
-        <article><span>03</span><h3 data-i18n="integrity3Title">Stable architecture</h3><p data-i18n="integrity3Text">Live connectors are optional. CSV/JSON import keeps Reddit, TikTok, Instagram or social-listening exports usable without fragile scraping.</p></article>
+    <section class="workspace-showcase section-wrap" id="workflow" data-reveal>
+      <div class="section-heading wide-heading"><span class="eyebrow">02 · DECISION WORKSPACE</span><h2 data-i18n="capTitle">Five surfaces. One research chain.</h2><p>Designed for scanning first, drilling into evidence second.</p></div>
+      <div class="workspace-preview spotlight-card">
+        <div class="preview-top"><span><i></i> InsightFlow / Magnetic Power Bank</span><span>Directional evidence · 32 rows</span></div>
+        <div class="preview-shell">
+          <aside><b>01</b><span>Overview</span><b>02</b><span>Trend Radar</span><b>03</b><span>Consumer Voice</span><b>04</b><span>Competitors</span><b>05</b><span>Opportunities</span></aside>
+          <div class="preview-content"><small>RECOMMENDED DECISION</small><h3>Prioritize usable-in-hand slimness and thermal stability before adding more capacity.</h3><div class="preview-actions"><div><span>PRODUCT</span><b>Benchmark thickness + thermals</b></div><div><span>GTM</span><b>Lead with attached-use portability</b></div><div><span>VALIDATE</span><b>Run 5-device fit benchmark</b></div></div><div class="preview-evidence"><span>WHY</span><p><b>Portability & slimness</b> · 18 rows · 3 sources</p><button class="evidence-preview-button" id="previewDemoBtn">Trace evidence →</button></div></div>
+        </div>
       </div>
     </section>
 
-    <section class="final-cta">
+    <section id="cases" class="case-editorial section-wrap">
+      <div class="section-heading"><span class="eyebrow">03 · PROOF OF GENERALIZATION</span><h2 data-i18n="casesTitle">Same logic, different categories.</h2><p data-i18n="casesLead">The project is deliberately tested beyond one hard-coded product category.</p></div>
+      <div class="editorial-case power-case tilt-card" data-reveal>
+        <div class="case-index">01</div><div class="case-copy"><span data-i18n="flagshipTag">FLAGSHIP</span><h3>Magnetic Power Bank</h3><p data-i18n="powerCaseText">A two-period evidence snapshot for portability, thermals, device fit and GTM proof points.</p><button class="case-link magnetic" id="caseDemoBtn" data-i18n="openWorkspace">Open decision workspace →</button></div><div class="case-poster"><span>US / AU</span><b>PORTABILITY<br/>BEFORE<br/><em>CAPACITY.</em></b><small>Evidence-backed launch hypothesis</small></div>
+      </div>
+      <div class="editorial-case x6-case tilt-card" data-reveal>
+        <div class="case-index">02</div><div class="case-copy"><span data-i18n="targetTag">TARGET-COMPANY CASE</span><h3>Insta360 X6</h3><p data-i18n="x6CaseText">A launch case asking whether workflow maturity can become a stronger moat than hardware specs alone.</p><a class="case-link magnetic" href="/case-insta360-x6.html" target="_blank" rel="noopener" data-i18n="openX6">Open X6 case →</a></div><div class="case-poster"><span>CREATOR WORKFLOW</span><b>HARDWARE<br/>ISN'T THE<br/><em>WHOLE STORY.</em></b><small>Record → Reframe → Export → Share</small></div>
+      </div>
+    </section>
+
+    <section id="method" class="method-v2 section-wrap" data-reveal>
+      <div class="method-title"><span class="eyebrow">04 · RESEARCH INTEGRITY</span><h2 data-i18n="integrityTitle">The system is designed to know when not to claim something.</h2></div>
+      <div class="method-lines">
+        <article><span>01</span><div><h3 data-i18n="integrity1Title">Evidence confidence</h3><p data-i18n="integrity1Text">Sample size and source diversity affect confidence. A score is prioritization, not certainty.</p></div></article>
+        <article><span>02</span><div><h3 data-i18n="integrity2Title">Cross-market comparability</h3><p data-i18n="integrity2Text">US vs AU consumer conclusions are blocked unless comparable voice sources exist in both markets.</p></div></article>
+        <article><span>03</span><div><h3 data-i18n="integrity3Title">Stable architecture</h3><p data-i18n="integrity3Text">Live connectors are optional. CSV/JSON import keeps Reddit, TikTok, Instagram or social-listening exports usable without fragile scraping.</p></div></article>
+      </div>
+    </section>
+
+    <section class="final-cta-v2" data-reveal>
+      <div class="cta-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
       <div><span class="eyebrow" data-i18n="ctaEyebrow">TRY THE PRODUCT</span><h2 data-i18n="ctaTitle">See the decision chain, not just the dashboard.</h2><p data-i18n="ctaText">The public demo uses a saved evidence snapshot, so it is fast, safe and does not consume the owner’s API quota.</p></div>
-      <button class="button button-primary button-lg" id="footerDemoBtn" data-i18n="exploreFlagship">Explore flagship case →</button>
+      <button class="button button-primary button-lg magnetic" id="footerDemoBtn" data-i18n="exploreFlagship">Explore flagship case →</button>
     </section>
   </main>
   <footer class="site-footer"><span>InsightFlow AI · Portfolio Prototype · 2026</span><a href="https://github.com/Meriky323/insightflow-ai" target="_blank" rel="noopener">GitHub ↗</a></footer>
@@ -193,7 +218,7 @@
     <label class="span2"><span data-i18n="markets">Markets</span><div class="choice-row"><label><input type="checkbox" name="market" value="US" checked/> US</label><label><input type="checkbox" name="market" value="AU" checked/> AU</label><label><input type="checkbox" name="market" value="UK"/> UK</label><label><input type="checkbox" name="market" value="CA"/> CA</label></div></label>
     <label><span data-i18n="timeWindow">Time window</span><select id="days"><option value="90">90 days</option><option value="180" selected>180 days</option><option value="365">365 days</option></select></label>
     <label><span data-i18n="researchDepth">Research depth</span><select id="depth"><option value="quick">Quick</option><option value="standard" selected>Standard</option><option value="deep">Deep</option></select></label>
-    <label class="span2"><span data-i18n="liveSources">Live sources</span><div class="choice-row sources"><label><input type="checkbox" name="source" value="shopping" checked/> Google Shopping</label><label><input type="checkbox" name="source" value="walmart" checked/> Walmart Reviews</label><label><input type="checkbox" name="source" value="youtube" checked/> YouTube</label><label><input type="checkbox" name="source" value="trends" checked/> Google Trends</label></div><small data-i18n="importHint">Reddit / TikTok / Instagram / social-listening exports can enter through CSV / JSON import without fragile scraping.</small></label>
+    <label class="span2"><span data-i18n="liveSources">Live sources</span><div class="choice-row sources"><label><input type="checkbox" name="source" value="shopping" checked/> Google Shopping</label><label><input type="checkbox" name="source" value="walmart" checked/> Walmart Reviews</label><label><input type="checkbox" name="source" value="youtube" checked/> YouTube</label><label><input type="checkbox" name="source" value="trends" checked/> Google Trends</label><label><input type="checkbox" name="source" value="community" checked/> Reddit / Forums</label></div><small data-i18n="importHint">Reddit / TikTok / Instagram / social-listening exports can enter through CSV / JSON import without fragile scraping.</small></label>
   </div>
   <div class="estimate-card"><span data-i18n="estimatedCalls">Estimated SerpAPI calls</span><b id="callEstimate">—</b><small data-i18n="cacheNote">Repeated identical requests may use local cache in analyst mode.</small></div>
   <button id="runResearch" class="button button-primary full" data-i18n="runResearch">Run research</button>
@@ -218,7 +243,10 @@
 
 <div class="modal hidden" id="askModal"><div class="modal-card ask-card"><div class="modal-head"><div><span class="eyebrow">AI COPILOT</span><h2 data-i18n="askInsightFlow">Ask InsightFlow</h2><p id="askMode">Evidence-grounded</p></div><button class="modal-close" data-close="askModal">×</button></div><div id="chat" class="chat"><div class="assistant-message" data-i18n="askStarter">Ask what the product team should validate first, what the strongest GTM message is, or where the evidence is weakest.</div></div><div class="prompt-chips"><button data-question-en="What should the product team validate first?" data-question-zh="产品团队第一优先应该验证什么？" data-i18n="askQ1">What should product validate first?</button><button data-question-en="What is the strongest evidence-backed GTM message?" data-question-zh="目前最有证据支持的 GTM 卖点是什么？" data-i18n="askQ2">Best GTM message?</button><button data-question-en="Can US and AU consumer voice be compared?" data-question-zh="现在可以比较美国和澳洲的消费者偏好吗？" data-i18n="askQ3">Can US and AU be compared?</button></div><form id="askForm" class="ask-form"><textarea id="askInput" data-i18n-placeholder="askPlaceholder" placeholder="Ask a question about this research…"></textarea><button class="button button-dark" data-i18n="askButton">Ask ↗</button></form></div></div>
 
+
+<div class="evidence-drawer" id="evidenceDrawer" aria-hidden="true"><div class="drawer-backdrop" data-drawer-close></div><aside class="drawer-panel"><div class="drawer-head"><div><span class="eyebrow">EVIDENCE THREAD</span><h2 id="drawerTopic">—</h2><p id="drawerMeta">—</p></div><button class="modal-close" id="drawerClose" aria-label="Close">×</button></div><div class="drawer-timeline" id="drawerEvidence"></div><div class="drawer-footer"><button class="button button-dark full" id="drawerVoiceBtn">Open Consumer Voice →</button></div></aside></div>
 <div class="toast" id="toast"></div>
 <script src="/app.js"></script>
+<script src="/motion.js"></script>
 </body>
 </html>

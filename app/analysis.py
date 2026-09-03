@@ -290,6 +290,32 @@ def _competitor_benchmark(products: list[dict], reviews: list[dict]) -> list[dic
     rows.sort(key=lambda x: (x['consumer_voice_coverage'], x['evidence_sample'], x.get('review_count') or 0), reverse=True)
     return rows[:20]
 
+
+def _research_quality(reviews: list[dict], products: list[dict], trends: list[dict], requested_markets: list[str]) -> dict:
+    n=len(reviews); sources={r.get('source') for r in reviews if r.get('source')}
+    dated=sum(1 for r in reviews if r.get('window_status')=='in_window')
+    unknown=sum(1 for r in reviews if r.get('window_status')=='unknown')
+    ai=sum(1 for r in reviews if r.get('analysis_mode')=='llm')
+    comparable=_market_comparison(reviews, requested_markets).get('available',False)
+    sample=min(1,n/120); diversity=min(1,len(sources)/4); freshness=(dated/max(1,n)) if n else 0; structured=(ai/max(1,n)) if n else 0
+    score=round(100*(0.45*sample+0.30*diversity+0.15*freshness+0.10*structured))
+    label='Strong' if score>=72 and n>=50 and len(sources)>=3 else 'Directional' if score>=38 and n>=12 else 'Thin'
+    warnings=[]
+    if n<12:warnings.append('Consumer-voice sample is small; treat outputs as exploratory signals.')
+    if len(sources)<2:warnings.append('Consumer voice is concentrated in one source; add an independent source before strong decisions.')
+    if n and unknown/n>0.35:warnings.append('Many evidence rows have unverified dates, weakening time-window claims.')
+    if len(requested_markets)>=2 and not comparable:warnings.append('Cross-market consumer preference comparison is blocked because equivalent voice coverage is missing.')
+    if not trends:warnings.append('No search-trend signal is available for this research.')
+    if not products:warnings.append('No product/retail benchmark signal is available for this research.')
+    return {
+        'label':label,'score':score,'consumer_voice_rows':n,'source_count':len(sources),
+        'verified_date_share':round(100*dated/max(1,n),1) if n else 0,'unverified_date_rows':unknown,
+        'llm_structured_share':round(100*structured,1) if n else 0,'cross_market_voice_comparable':comparable,
+        'warnings':warnings,
+        'note':'Quality score is an internal research-readiness heuristic, not a statistical confidence interval.'
+    }
+
+
 def summarize(products: list[dict], reviews: list[dict], trends: list[dict], requested_markets: list[str] | None = None) -> dict:
     requested_markets = requested_markets or sorted({x.get('market') for x in products + trends if x.get('market') and x.get('market') != 'GLOBAL'})
     n = len(reviews)
@@ -328,13 +354,15 @@ def summarize(products: list[dict], reviews: list[dict], trends: list[dict], req
         volume = x['count'] / max_issue
         impact = x['purchase_impact_rate'] / 100
         diversity = min(1.0, x['source_count'] / max_sources)
-        gap = 1 - coverage
-        score = round(100 * (0.40 * volume + 0.30 * impact + 0.20 * diversity + 0.10 * gap))
+        # Priority is driven by observed evidence, not by a weak text-match claim of competitor whitespace.
+        confidence_factor={'High':1.0,'Medium':0.65,'Low':0.35}.get(x.get('confidence'),0.35)
+        score = round(100 * (0.42 * volume + 0.30 * impact + 0.18 * diversity + 0.10 * confidence_factor))
         opportunities.append({
             **x,
             'benchmark_coverage': round(coverage * 100),
             'opportunity_score': score,
             'label': 'Validation hypothesis',
+            'score_note':'Ranks validation priority from observed volume, decision impact, source diversity and evidence confidence; not market size or whitespace proof.',
         })
     opportunities.sort(key=lambda z: z['opportunity_score'], reverse=True)
 
@@ -351,6 +379,7 @@ def summarize(products: list[dict], reviews: list[dict], trends: list[dict], req
         'analysis_modes': dict(analysis_modes),
         'window_unknown_count': window_unknown_count,
         'evidence_confidence': _overall_confidence(n, len(sources)),
+        'research_quality': _research_quality(reviews, products, trends, requested_markets),
         'source_coverage': _coverage(products, reviews, trends, requested_markets),
         'market_comparison': _market_comparison(reviews, requested_markets),
         'trend_summary': _trend_summary(trends),

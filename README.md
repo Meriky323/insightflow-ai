@@ -1,18 +1,18 @@
-# InsightFlow AI
+# InsightFlow AI 2.0
 
-**Global Consumer & GTM Intelligence · Bilingual Recruiter Demo**
+**Evidence-first Consumer & GTM Intelligence · Bilingual Recruiter Website**
 
-Online demo: **https://insightflow-ai.up.railway.app/**
+InsightFlow turns fragmented public market signals, consumer voice, community discussions and competitor evidence into auditable Product / GTM decisions. The recruiter-facing site is intentionally safe and quota-free; local Analyst Mode can run live research with SerpAPI + an OpenAI-compatible LLM / Sub2API endpoint.
 
-![InsightFlow recruiter landing](docs/assets/recruiter-landing.png)
+## 2.0 highlights
 
-![InsightFlow executive workspace](docs/assets/executive-workspace.png)
-
-InsightFlow turns fragmented overseas consumer signals into an auditable decision workflow:
-
-**Evidence → Insight → Decision → Product Action / GTM Action / Next Validation**
-
-The public website is designed for recruiters: it opens directly into a saved evidence-backed case, requires no API keys, does not spend the owner's SerpAPI / LLM quota, and clearly separates facts, inference and research boundaries.
+- **Evidence Editorial UI** with animated Evidence Thread, scroll reveals, spotlight hover, magnetic CTAs and mobile bottom-sheet interactions.
+- **Real community discovery** through Google Discussions & Forums (Reddit/forum snippets) without assigning unreliable country geography.
+- **Research Quality** (`Thin / Directional / Strong`) based on sample, source diversity, date coverage and AI structuring.
+- **Question-aware retrieval** for Ask InsightFlow before LLM reasoning.
+- **Opportunity priority** no longer depends on weak competitor-keyword “whitespace” claims.
+- **Bilingual EN / 中文** UI with original consumer evidence preserved in source language.
+- **Public recruiter mode**: no API keys, no quota consumption, no uploads, no secret exposure.
 
 ## What this project demonstrates
 

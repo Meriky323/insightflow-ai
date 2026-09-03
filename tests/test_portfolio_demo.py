@@ -14,7 +14,9 @@ def load_demo():
 def test_health_version():
     r=client.get('/api/health')
     assert r.status_code==200
-    assert r.json()['version']=='1.6.0'
+    assert r.json()['version']=='2.0.0'
+    assert r.json()['community_discovery'] is True
+    assert r.json()['evidence_thread'] is True
     assert r.json()['bilingual_ui'] is True
 
 
@@ -24,6 +26,7 @@ def test_demo_is_traceable_and_market_guardrail_blocks_bad_comparison():
     assert s['review_count']==18
     assert s['product_count']==8
     assert s['research']['decision']['demo_meta']['demo_schema_version']=='1.6'
+    assert s['research_quality']['label'] in {'Thin','Directional','Strong'}
     assert s['market_comparison']['available'] is False
     assert 'No consumer-voice source' in s['market_comparison']['reason']
     assert s['historical_delta'] is not None
@@ -107,3 +110,34 @@ def test_public_demo_ask_can_answer_english(monkeypatch):
     assert r.json()['mode']=='local'
     assert 'does not support' in r.json()['answer']
     monkeypatch.setenv('PUBLIC_DEPLOYMENT','0')
+
+
+def test_research_contract_accepts_community_source(monkeypatch):
+    monkeypatch.setenv('PUBLIC_DEPLOYMENT','0')
+    shell=client.post('/api/research',json={'keyword':'community-only shell','markets':['US'],'days':90,'sources':[],'objective':'gtm','depth':'quick'})
+    assert shell.status_code==200
+    # Pydantic contract is exercised separately from paid live collection.
+    from app.main import ResearchIn, estimate_calls
+    p=ResearchIn(keyword='action camera',markets=['US','AU'],days=90,sources=['community'],depth='quick')
+    assert estimate_calls(p,['US','AU'])==1
+
+def test_ui_has_evidence_drawer_and_motion_surface():
+    home=client.get('/').text
+    assert 'evidenceDrawer' in home
+    assert 'hero-signal-stage' in home
+    assert 'Reddit / Forums' in home
+    motion=client.get('/motion.js')
+    assert motion.status_code==200
+    assert 'spotlight-card' in motion.text
+
+def test_community_discussions_parser_uses_real_snippet_shape_without_geo_inference(monkeypatch):
+    from app.collectors.serpapi import SerpApiClient
+    c=SerpApiClient('x')
+    fixture={'discussions_and_forums':[{'title':'Which camera is easiest to edit? - Reddit','link':'https://www.reddit.com/r/cameras/comments/abc/thread/','date':'2w','source':'Reddit','answers':[{'snippet':'The editing workflow matters more to me than another spec bump.','link':'https://www.reddit.com/r/cameras/comments/abc/thread/comment1','extensions':['Top answer','24 votes']}]}]}
+    monkeypatch.setattr(c,'search',lambda **kwargs: fixture)
+    rows=c.community_discussions('action camera','AU',10)
+    assert len(rows)==1
+    assert rows[0]['source']=='Reddit'
+    assert rows[0]['market']=='GLOBAL'
+    assert rows[0]['helpful']==24
+    assert 'workflow matters' in rows[0]['text']

@@ -114,6 +114,57 @@ class SerpApiClient:
             if not reviews: break
         return out
 
+
+    def community_discussions(self, keyword: str, market: str = 'US', limit: int = 20) -> list[dict]:
+        """Discover public forum/community evidence through Google Discussions & Forums.
+
+        Geography here only biases discovery; author geography is not reliable, so rows are
+        deliberately labelled GLOBAL. This gives the research engine real Reddit/forum snippets
+        without depending on a fragile direct scraper.
+        """
+        data=self.search(engine='google', q=keyword, gl=market.lower(), hl='en', device='mobile')
+        rows=data.get('discussions_and_forums') or []
+        out=[];seen=set()
+        for thread in rows:
+            source=(thread.get('source') or 'Community').strip()
+            title=(thread.get('title') or '').strip()
+            thread_url=thread.get('link')
+            date=thread.get('date')
+            answers=thread.get('answers') or []
+            if answers:
+                for pos,a in enumerate(answers,1):
+                    text=(a.get('snippet') or '').strip()
+                    if not text: continue
+                    url=a.get('link') or thread_url
+                    key=url or f"{source}:{title}:{text[:120]}"
+                    if key in seen: continue
+                    seen.add(key)
+                    helpful=None
+                    ext=' '.join(a.get('extensions') or [])
+                    import re as _re
+                    m=_re.search(r'(\d[\d,]*)\s*(?:vote|votes|upvote|upvotes)', ext, _re.I)
+                    if m:
+                        try: helpful=int(m.group(1).replace(',',''))
+                        except Exception: helpful=None
+                    out.append({
+                        'source':source,'market':'GLOBAL','product_external_id':None,'product_title':title,
+                        'review_external_id':str(url or key),'title':title,'text':text,'rating':None,'author':None,
+                        'review_date':date,'url':url,'helpful':helpful,
+                    })
+                    if len(out)>=limit: return out
+            elif title:
+                # A discussion title itself can be a real need/question signal; keep it clearly as a thread title.
+                key=thread_url or f"{source}:{title}"
+                if key not in seen:
+                    seen.add(key)
+                    out.append({
+                        'source':source,'market':'GLOBAL','product_external_id':None,'product_title':title,
+                        'review_external_id':str(key),'title':'Community thread','text':title,'rating':None,'author':None,
+                        'review_date':date,'url':thread_url,'helpful':None,
+                    })
+                    if len(out)>=limit: return out
+        return out
+
     def google_trends(self, keyword: str, market: str, days: int) -> list[dict]:
         end=datetime.now(timezone.utc).date(); start=end-timedelta(days=days)
         date=f'{start.isoformat()} {end.isoformat()}'

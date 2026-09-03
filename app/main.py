@@ -27,7 +27,7 @@ from .demo import seed_portfolio_demo
 ROOT=Path(__file__).resolve().parents[1]
 STATIC=ROOT/'static'
 
-app=FastAPI(title='InsightFlow AI',version='1.6.0')
+app=FastAPI(title='InsightFlow AI',version='2.0.0')
 db.init_db()
 
 
@@ -46,7 +46,7 @@ class ResearchIn(BaseModel):
     keyword: str = Field(min_length=2,max_length=160)
     markets: list[str] = Field(default_factory=lambda:['US'])
     days: int = Field(default=180,ge=7,le=1825)
-    sources: list[Literal['shopping','walmart','youtube','trends']] = Field(default_factory=lambda:['shopping','walmart','youtube','trends'])
+    sources: list[Literal['shopping','walmart','youtube','trends','community']] = Field(default_factory=lambda:['shopping','walmart','youtube','trends','community'])
     objective: Literal['gtm','product_launch','competitor','content'] = 'gtm'
     depth: Literal['quick','standard','deep','custom'] = 'standard'
     shopping_limit: int = Field(default=20,ge=1,le=50)
@@ -63,7 +63,7 @@ class AskIn(BaseModel):
 
 @app.get('/api/health')
 def health():
-    return {'ok':True,'version':'1.6.0','real_data_only':True,'portfolio_demo':True,'bilingual_ui':True}
+    return {'ok':True,'version':'2.0.0','real_data_only':True,'portfolio_demo':True,'bilingual_ui':True,'community_discovery':True,'evidence_thread':True}
 
 
 @app.get('/api/config')
@@ -295,6 +295,44 @@ def research_compare(rid:int,baseline_id:int):
     return _summary_delta(sa,sb,_research_payload(a),_research_payload(b))
 
 
+def _retrieve_for_question(question:str,reviews:list[dict],summary:dict,limit:int=48)->list[dict]:
+    """Lightweight retrieval over saved evidence before sending context to the LLM.
+
+    This keeps Ask InsightFlow grounded in the rows most related to the question while still
+    preserving source diversity. It is intentionally deterministic and dependency-free.
+    """
+    qtokens={w for w in re.findall(r'[a-zA-Z0-9\u4e00-\u9fff]+',question.lower()) if len(w)>=2}
+    scored=[]
+    topic_names=[x.get('name','') for x in summary.get('issues') or []]
+    for r in reviews:
+        try:topics=json.loads(r.get('topics_json') or '[]')
+        except Exception:topics=[]
+        hay=' '.join(str(r.get(k) or '') for k in ['text','title','issue','driver','barrier','scenario']).lower()+' '+' '.join(topics).lower()
+        score=sum(2 for t in qtokens if t in hay)
+        for topic in topic_names:
+            if topic and topic.lower() in question.lower() and topic.lower() in hay: score+=5
+        if r.get('purchase_impact'): score+=0.6
+        if r.get('helpful'): score+=min(1.5,float(r.get('helpful') or 0)/20)
+        scored.append((score,r))
+    scored.sort(key=lambda x:x[0],reverse=True)
+    selected=[];seen=set();per_source=defaultdict(int)
+    for score,r in scored:
+        if score<=0 and len(selected)>=min(12,limit):break
+        key=(r.get('source'),r.get('review_external_id') or (r.get('text') or '')[:120])
+        if key in seen:continue
+        src=r.get('source') or 'Unknown'
+        if per_source[src]>=max(6,limit//3):continue
+        seen.add(key);per_source[src]+=1;selected.append(r)
+        if len(selected)>=limit:break
+    if len(selected)<min(16,limit):
+        for r in _representative_reviews(reviews,summary,limit):
+            key=(r.get('source'),r.get('review_external_id') or (r.get('text') or '')[:120])
+            if key not in seen:
+                seen.add(key);selected.append(r)
+            if len(selected)>=limit:break
+    return selected
+
+
 @app.post('/api/research/{rid}/ask')
 def research_ask(rid:int,payload:AskIn):
     r=_require_research(rid)
@@ -308,7 +346,7 @@ def research_ask(rid:int,payload:AskIn):
         context={
             'research':_research_payload(r),
             'summary':{k:v for k,v in summary.items() if k not in {'trends','top_products'}},
-            'representative_evidence':_representative_reviews(reviews,summary,120),
+            'representative_evidence':_retrieve_for_question(payload.question,reviews,summary,60),
             'products':products[:40],
             'trend_summary':summary.get('trend_summary'),
         }
@@ -342,6 +380,7 @@ def estimate_calls(p:ResearchIn, markets:list[str])->int:
     calls=0
     if 'shopping' in p.sources:calls+=len(markets)
     if 'trends' in p.sources:calls+=len(markets)
+    if 'community' in p.sources:calls+=1
     if 'walmart' in p.sources and 'US' in markets:calls+=1+wm_products*wm_pages
     if 'youtube' in p.sources:calls+=len(markets)*(1+yt_videos*yt_pages)
     return calls
@@ -358,6 +397,12 @@ def _parse_review_date(value) -> datetime | None:
     now=datetime.now(timezone.utc)
     if low in {'today','just now'}:return now
     if low=='yesterday':return now-timedelta(days=1)
+    # Google Discussions/Forums commonly returns compact ages such as 4w, 3mo, 1y.
+    short=re.fullmatch(r'(\d+)\s*(m|h|d|w|mo|y)',low)
+    if short:
+        n=int(short.group(1));unit=short.group(2)
+        days={'m':n/1440,'h':n/24,'d':n,'w':7*n,'mo':30*n,'y':365*n}[unit]
+        return now-timedelta(days=days)
     m=re.search(r'(\d+)\s*(minute|hour|day|week|month|year)s?\s+ago',low)
     if m:
         n=int(m.group(1));unit=m.group(2)
@@ -481,6 +526,17 @@ def _run_research(rid:int,p:ResearchIn,markets:list[str]):
                     except Exception as e:
                         fails+=1;warnings.append(f"Walmart reviews · {prod.get('title','product')[:50]}: {type(e).__name__}: {e}")
                 mark('Walmart reviews · US','partial' if fails else 'ok',got,f'{fails} product(s) failed' if fails else '')
+
+        if 'community' in p.sources:
+            # Community discovery is intentionally one global evidence call. The requested market only biases
+            # the search result set; author geography is not inferred from it.
+            name='Community discussions · GLOBAL';db.set_research_status(rid,'running',44,'Discovering Reddit / forum discussions')
+            try:
+                community_market=markets[0] if markets else 'US'
+                rs=client.community_discussions(p.keyword,community_market,24 if p.depth=='deep' else 16 if p.depth=='standard' else 10)
+                reviews.extend(rs);mark(name,'ok' if rs else 'partial',len(rs),'Public discussion/answer snippets discovered via Google Discussions & Forums; geography remains GLOBAL.')
+            except Exception as e:
+                msg=f'{type(e).__name__}: {e}';warnings.append(f'{name}: {msg}');mark(name,'failed',0,msg)
 
         if 'youtube' in p.sources:
             for mi,m in enumerate(markets,1):
