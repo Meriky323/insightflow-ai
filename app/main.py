@@ -23,11 +23,12 @@ from .llm import analyze_review_batch, ask_llm, generate_decision_brief, llm_ena
 from .reports import write_csv, write_docx, write_pdf
 from .importers import parse_evidence_file
 from .demo import seed_portfolio_demo
+from .research_strategy import community_queries
 
 ROOT=Path(__file__).resolve().parents[1]
 STATIC=ROOT/'static'
 
-app=FastAPI(title='InsightFlow AI',version='2.0.0')
+app=FastAPI(title='InsightFlow AI',version='2.1.0')
 db.init_db()
 
 
@@ -63,7 +64,7 @@ class AskIn(BaseModel):
 
 @app.get('/api/health')
 def health():
-    return {'ok':True,'version':'2.0.0','real_data_only':True,'portfolio_demo':True,'bilingual_ui':True,'community_discovery':True,'evidence_thread':True}
+    return {'ok':True,'version':'2.1.0','real_data_only':True,'portfolio_demo':True,'bilingual_ui':True,'community_discovery':True,'evidence_thread':True,'query_expansion':True,'design_refresh':'2.1'}
 
 
 @app.get('/api/config')
@@ -380,7 +381,7 @@ def estimate_calls(p:ResearchIn, markets:list[str])->int:
     calls=0
     if 'shopping' in p.sources:calls+=len(markets)
     if 'trends' in p.sources:calls+=len(markets)
-    if 'community' in p.sources:calls+=1
+    if 'community' in p.sources:calls+=len(community_queries(p.keyword,p.objective,p.depth))
     if 'walmart' in p.sources and 'US' in markets:calls+=1+wm_products*wm_pages
     if 'youtube' in p.sources:calls+=len(markets)*(1+yt_videos*yt_pages)
     return calls
@@ -528,13 +529,20 @@ def _run_research(rid:int,p:ResearchIn,markets:list[str]):
                 mark('Walmart reviews · US','partial' if fails else 'ok',got,f'{fails} product(s) failed' if fails else '')
 
         if 'community' in p.sources:
-            # Community discovery is intentionally one global evidence call. The requested market only biases
-            # the search result set; author geography is not inferred from it.
+            # Community discovery deliberately expands only a few decision-oriented intents.
+            # The actual evidence still comes from Google Discussions & Forums / public result snippets.
             name='Community discussions · GLOBAL';db.set_research_status(rid,'running',44,'Discovering Reddit / forum discussions')
             try:
                 community_market=markets[0] if markets else 'US'
-                rs=client.community_discussions(p.keyword,community_market,24 if p.depth=='deep' else 16 if p.depth=='standard' else 10)
-                reviews.extend(rs);mark(name,'ok' if rs else 'partial',len(rs),'Public discussion/answer snippets discovered via Google Discussions & Forums; geography remains GLOBAL.')
+                plan=community_queries(p.keyword,p.objective,p.depth)
+                gathered=[]
+                per_query=10 if p.depth=='quick' else 12
+                for qi,query in enumerate(plan,1):
+                    db.set_research_status(rid,'running',44+int(4*qi/max(1,len(plan))),f'Community discovery {qi}/{len(plan)}')
+                    gathered.extend(client.community_discussions(query,community_market,per_query))
+                rs=_dedupe_reviews(gathered)
+                reviews.extend(rs)
+                mark(name,'ok' if rs else 'partial',len(rs),f'{len(plan)} intent query(s); public discussion/answer snippets; geography remains GLOBAL.')
             except Exception as e:
                 msg=f'{type(e).__name__}: {e}';warnings.append(f'{name}: {msg}');mark(name,'failed',0,msg)
 

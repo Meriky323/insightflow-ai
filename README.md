@@ -111,3 +111,10 @@ node --check static/app.js
 ```
 
 Current final build: **v1.6.0**
+
+
+## InsightFlow 2.1 polish
+
+- Evidence Editorial motion layer with scroll progress, evidence-stage parallax, scroll-stack choreography and refined workspace micro-interactions.
+- Objective-aware community query expansion in Standard/Deep research to improve real discussion coverage without fragile direct scraping.
+- Public recruiter demo still spends zero owner API quota.
