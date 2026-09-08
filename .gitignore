@@ -8,3 +8,5 @@ data/exports/
 data/cache/
 .pytest_cache/
 .DS_Store
+LIVE_CHECK_RESULT.json
+LIVE_CHECK_RESULT.txt

@@ -21,7 +21,7 @@ function Test-LiveVersion {
     try { $x6Html = Get-TextValue "$baseUrl/case-insta360-x6.html" } catch { $issues.Add("X6 request failed: $($_.Exception.Message)"); return $issues }
     try { $motionJs = Get-TextValue "$baseUrl/motion.js" } catch { $issues.Add("motion.js request failed: $($_.Exception.Message)"); return $issues }
 
-    if ($health.version -ne '2.0.0') { $issues.Add("health.version=$($health.version), expected 2.0.0") }
+    if ($health.version -ne '2.1.1') { $issues.Add("health.version=$($health.version), expected 2.1.1") }
     if (-not $health.portfolio_demo) { $issues.Add('portfolio_demo flag missing') }
     if (-not $health.bilingual_ui) { $issues.Add('bilingual_ui flag missing') }
     if (-not $health.community_discovery) { $issues.Add('community_discovery flag missing') }
@@ -58,14 +58,14 @@ function Test-LiveVersion {
     return $issues
 }
 
-Write-Host "Checking InsightFlow 2.0 live recruiter website..."
+Write-Host "Checking InsightFlow 2.1.1 live recruiter website..."
 $attempt = 0
 while ((Get-Date) -lt $deadline) {
     $attempt++
     $issues = Test-LiveVersion
     if ($issues.Count -eq 0) {
         Write-Host ""
-        Write-Host "PASS: InsightFlow 2.0 is live and all critical surfaces passed verification." -ForegroundColor Green
+        Write-Host "PASS: InsightFlow 2.1.1 is live and all critical surfaces passed verification." -ForegroundColor Green
         Write-Host "Landing:     $baseUrl/"
         Write-Host "Flagship:    $baseUrl/?demo=1"
         Write-Host "Case study:  $baseUrl/case-study.html"
@@ -78,6 +78,6 @@ while ((Get-Date) -lt $deadline) {
     Start-Sleep -Seconds 20
 }
 Write-Host ""
-Write-Host "FAIL: InsightFlow 2.0 did not pass full verification within 20 minutes." -ForegroundColor Red
+Write-Host "FAIL: InsightFlow 2.1.1 did not pass full verification within 20 minutes." -ForegroundColor Red
 $issues | ForEach-Object { Write-Host "  - $_" }
 exit 1
