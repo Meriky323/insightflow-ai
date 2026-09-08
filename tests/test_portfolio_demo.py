@@ -14,7 +14,7 @@ def load_demo():
 def test_health_version():
     r=client.get('/api/health')
     assert r.status_code==200
-    assert r.json()['version']=='2.1.0'
+    assert r.json()['version']=='2.1.1'
     assert r.json()['community_discovery'] is True
     assert r.json()['evidence_thread'] is True
     assert r.json()['query_expansion'] is True

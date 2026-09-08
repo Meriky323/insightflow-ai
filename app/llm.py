@@ -178,13 +178,21 @@ def test_llm_connection() -> dict:
                 return {'ok': False, 'message': f'HTTP {r.status_code}: {r.text[:180]}'}
             data = r.json()
         ids = []
-        for item in (data.get('data') or [])[:30]:
+        for item in (data.get('data') or []):
             if isinstance(item, dict) and item.get('id'):
                 ids.append(str(item['id']))
         configured = get('LLM_MODEL')
+        # A models list alone does not prove this account can run inference.
+        probe = _chat([
+            {'role': 'system', 'content': 'This is a connection test. Reply with OK only.'},
+            {'role': 'user', 'content': 'Reply with OK.'},
+        ], temperature=0.0)
+        if not isinstance(probe, str) or not probe.strip():
+            return {'ok': False, 'message': 'Model listing succeeded but generation returned no text.'}
         return {
             'ok': True,
-            'message': 'AI Engine reachable',
+            'message': 'Model listing and actual text generation succeeded',
+            'generation_verified': True,
             'configured_model': configured,
             'model_visible': configured in ids if ids else None,
             'models_sample': ids[:12],

@@ -28,7 +28,7 @@ from .research_strategy import community_queries
 ROOT=Path(__file__).resolve().parents[1]
 STATIC=ROOT/'static'
 
-app=FastAPI(title='InsightFlow AI',version='2.1.0')
+app=FastAPI(title='InsightFlow AI',version='2.1.1')
 db.init_db()
 
 
@@ -64,7 +64,7 @@ class AskIn(BaseModel):
 
 @app.get('/api/health')
 def health():
-    return {'ok':True,'version':'2.1.0','real_data_only':True,'portfolio_demo':True,'bilingual_ui':True,'community_discovery':True,'evidence_thread':True,'query_expansion':True,'design_refresh':'2.1'}
+    return {'ok':True,'version':'2.1.1','real_data_only':True,'portfolio_demo':True,'bilingual_ui':True,'community_discovery':True,'evidence_thread':True,'query_expansion':True,'design_refresh':'2.1'}
 
 
 @app.get('/api/config')
@@ -383,7 +383,7 @@ def estimate_calls(p:ResearchIn, markets:list[str])->int:
     if 'trends' in p.sources:calls+=len(markets)
     if 'community' in p.sources:calls+=len(community_queries(p.keyword,p.objective,p.depth))
     if 'walmart' in p.sources and 'US' in markets:calls+=1+wm_products*wm_pages
-    if 'youtube' in p.sources:calls+=len(markets)*(1+yt_videos*yt_pages)
+    if 'youtube' in p.sources:calls+=len(markets)*(1+yt_videos*(1+yt_pages))
     return calls
 
 

@@ -4,9 +4,11 @@ cd /d "%~dp0"
 if not exist .venv (
   echo [InsightFlow] Creating virtual environment...
   py -m venv .venv
+  if errorlevel 1 goto fail
 )
 call .venv\Scripts\activate.bat
-python -m pip install -r requirements.txt >nul
+python -m pip install -r requirements.txt
+if errorlevel 1 goto fail
 if not exist .env copy .env.example .env >nul
 echo.
 echo InsightFlow AI is starting at http://127.0.0.1:8000
@@ -14,4 +16,11 @@ echo Portfolio home: http://127.0.0.1:8000/
 echo Flagship case:  http://127.0.0.1:8000/?demo=1
 echo.
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+if errorlevel 1 goto fail
 endlocal
+exit /b 0
+:fail
+echo.
+echo Startup failed. Keep this window open and copy the error above for troubleshooting.
+pause
+exit /b 1

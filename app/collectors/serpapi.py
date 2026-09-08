@@ -191,25 +191,41 @@ class SerpApiClient:
         return videos
 
     def youtube_comments(self, video: dict, max_pages: int = 1) -> list[dict]:
+        """Fetch actual YouTube comments.
+
+        SerpApi's initial youtube_video response returns comment pagination/sorting tokens;
+        comments themselves are retrieved with a token. We deliberately prefer the
+        "Newest first" token when available so a requested research window has a better
+        chance of containing recent consumer voice. Author geography is not inferred,
+        therefore all comments remain GLOBAL.
+        """
         vid=video['video_id']
-        data=self.search(engine='youtube_video', v=vid, hl='en')
+        detail=self.search(engine='youtube_video', v=vid, hl='en')
+        sorting=detail.get('comments_sorting_token') or []
+        newest=None
+        for item in sorting:
+            if str(item.get('title') or '').lower().startswith('newest') and item.get('token'):
+                newest=item['token'];break
+        token=newest or detail.get('comments_next_page_token')
+        if not token:
+            return []
         out=[]
         pages=0
-        while True:
-            for x in data.get('comments') or []:
+        while token and pages < max_pages:
+            data=self.search(engine='youtube_video', next_page_token=token, hl='en')
+            reviews=data.get('comments') or []
+            for x in reviews:
                 channel=x.get('channel') or {}
                 out.append({
                   'source':'YouTube','market':'GLOBAL','product_external_id':vid,'product_title':video.get('title'),
                   'review_external_id':x.get('comment_id'),'title':None,'text':x.get('content') or x.get('text') or '',
                   'rating':None,'author':channel.get('name') or x.get('author'),'review_date':x.get('published_date') or x.get('published_time'),
-                  'url':x.get('link') or video.get('url'),'helpful':x.get('extracted_likes') or x.get('likes'),
+                  'url':x.get('link') or video.get('url'),'helpful':x.get('extracted_vote_count') or x.get('extracted_likes') or x.get('likes'),
                 })
             pages += 1
-            if pages>=max_pages: break
             token=data.get('comments_next_page_token')
-            if not token: break
-            data=self.search(engine='youtube_video', next_page_token=token, hl='en')
         return out
+
 
 
 def _currency_from_price(s):
