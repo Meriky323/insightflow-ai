@@ -42,7 +42,7 @@
 .hero-signal-stage:hover{box-shadow:0 34px 100px rgba(20,26,36,.19),inset 0 0 0 1px rgba(255,255,255,.04)}
 .evidence-map .source-node{transition:transform .32s var(--if-spring),filter .32s var(--if-ease)}
 .evidence-map .source-node:hover{filter:brightness(1.18)}
-.evidence-map .insight-node{transform-box:fill-box;transform-origin:center;animation:if-node-breathe 3.6s ease-in-out infinite}
+.evidence-map .insight-node rect{transform-box:fill-box;transform-origin:center;animation:if-node-breathe 3.6s ease-in-out infinite}
 @keyframes if-node-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
 
 /* Scroll cue gets an actual travelling signal. */
@@ -131,7 +131,7 @@ body.if-leaving #if-transition-veil{transform:translateY(0)}
 
 @media (prefers-reduced-motion:reduce){
   #if-scroll-progress,.hero-v2-copy h1 em::after,.story-card::before,.scroll-cue span::after{animation:none!important;transition:none!important}
-  .evidence-map .insight-node{animation:none!important}
+  .evidence-map .insight-node rect{animation:none!important}
   .story-card{transform:none!important;opacity:1!important}
   .workspace-preview .preview-shell::after{display:none!important}
 }
