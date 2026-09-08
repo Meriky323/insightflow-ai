@@ -1,84 +1,176 @@
-# InsightFlow AI 2.0
+<sub>🌐 <b>中文</b> · <a href="README.en.md">English</a></sub>
 
-**Evidence-first Consumer & GTM Intelligence · Bilingual Recruiter Website**
+<div align="center">
 
-InsightFlow turns fragmented public market signals, consumer voice, community discussions and competitor evidence into auditable Product / GTM decisions. The recruiter-facing site is intentionally safe and quota-free; local Analyst Mode can run live research with SerpAPI + an OpenAI-compatible LLM / Sub2API endpoint.
+# InsightFlow AI
 
-## 2.0 highlights
+### 把分散的市场信号，变成可追溯的消费者洞察与行动建议
 
-- **Evidence Editorial UI** with animated Evidence Thread, scroll reveals, spotlight hover, magnetic CTAs and mobile bottom-sheet interactions.
-- **Real community discovery** through Google Discussions & Forums (Reddit/forum snippets) without assigning unreliable country geography.
-- **Research Quality** (`Thin / Directional / Strong`) based on sample, source diversity, date coverage and AI structuring.
-- **Question-aware retrieval** for Ask InsightFlow before LLM reasoning.
-- **Opportunity priority** no longer depends on weak competitor-keyword “whitespace” claims.
-- **Bilingual EN / 中文** UI with original consumer evidence preserved in source language.
-- **Public recruiter mode**: no API keys, no quota consumption, no uploads, no secret exposure.
+**Evidence-first Consumer & GTM Intelligence**
 
-## What this project demonstrates
+不是“让 AI 总结评论”，而是把 **证据 → 洞察 → 产品 / 营销动作 → 下一步验证** 串成一条可复用的研究链路。
 
-- overseas consumer research and GTM reasoning
-- evidence-first AI analysis rather than “LLM summary = truth”
-- multi-source consumer voice and competitor benchmarking
-- historical topic delta / Trend Radar
-- cross-market comparability guardrails
-- product action + GTM action + next validation
-- bilingual Chinese / English portfolio UX
-- safe public demo + deeper local analyst mode
+</div>
 
-## Core product surfaces
+---
 
-1. **Executive Snapshot** — business question, recommendation, confidence and decision boundary
-2. **Trend Radar** — historical topic delta and within-market search momentum
-3. **Consumer Voice** — traceable source evidence with topic / sentiment / driver / barrier labels
-4. **Competitors** — product facts linked with consumer evidence
-5. **Opportunity Board** — evidence → insight → product action → GTM action → next validation
-6. **Ask InsightFlow** — evidence-grounded Q&A; public mode uses deterministic local answers so no private model quota is spent
+## 为什么做这个项目
 
-## Data architecture
+做海外新品调研、选品或内容策略时，常见的问题不是“找不到信息”，而是：
+
+1. **信息分散**：商品、评论、视频、搜索趋势、社区讨论和竞品信息分布在不同平台；
+2. **人工链路重复**：每换一个品类，都要重新搜索、复制、整理、归类；
+3. **洞察容易停在表面**：很多分析只告诉你“用户喜欢 / 不喜欢什么”，却没有回答为什么买、为什么不买；
+4. **AI 结论缺少证据边界**：模型可以生成很完整的答案，但不一定能告诉你哪些是事实、哪些只是待验证假设。
+
+所以我做了 InsightFlow：**先保留证据，再做结构化分析，最后才输出行动建议。**
+
+---
+
+## 它解决什么问题
+
+### 1. 消费者需求洞察
+
+将评论与公开讨论整理成：
+
+- 用户痛点
+- 购买驱动
+- 购买阻碍
+- 使用场景
+- 明确的购买影响
+- 竞品提及与替代选择
+
+重点不是“情绪正负”，而是回答：
+
+> **用户为什么选择它？为什么放弃它？哪些需求会真正影响购买？**
+
+### 2. 市场与竞品判断
+
+将商品事实、价格、定位和消费者证据放在一起看，避免只看竞品官网卖点。
+
+输出包括：
+
+- 市场共性卖点
+- 竞争同质化
+- 消费者反复提及的问题
+- 值得进一步验证的差异化方向
+
+### 3. 从洞察到行动
+
+InsightFlow 不把“洞察”当终点，而是继续输出：
+
+- **Product Action**：产品 / 供给下一步做什么
+- **GTM Action**：卖点、内容、本地化与上市策略下一步做什么
+- **Next Validation**：下一步还需要验证什么，避免把假设写成结论
+
+---
+
+## 核心流程
 
 ```text
-LIVE CONNECTORS                         IMPORT LAYER
-Google Shopping                        CSV / JSON
-Walmart Reviews                        Reddit export
-YouTube                                TikTok / Instagram export
-Google Trends                          Brandwatch / Sprinklr export
-                                       Survey / CRM / Support data
-          \                               /
-           -------- Evidence Layer -------
-                       ↓
-          AI / rule-based structuring
-                       ↓
-   Topic · Driver · Barrier · Scenario · Impact
-                       ↓
- Trend · Consumer Voice · Competitor Benchmark
-                       ↓
- Opportunity → Product Action → GTM Action
-                       ↓
-               Next Validation
+真实市场信号
+Google Shopping · Walmart · YouTube · Google Trends
+公开社区讨论 · CSV / JSON 外部数据
+        ↓
+证据层
+保留来源、日期、原始文本与市场边界
+        ↓
+结构化分析
+痛点 · 驱动 · 阻碍 · 场景 · 购买影响
+        ↓
+市场 / 消费者 / 竞品洞察
+        ↓
+机会判断
+        ↓
+产品动作 · GTM 动作 · 下一步验证
 ```
 
-The architecture intentionally does **not** require fragile Reddit / TikTok / Instagram scraping for the product to remain useful. Compliant exports can enter the same analysis pipeline through CSV / JSON.
+---
 
-## Portfolio cases
+## 主要产品页面
+
+| 模块 | 回答的问题 |
+|---|---|
+| **Executive Snapshot** | 这次研究最值得关注的结论是什么？置信度和边界在哪里？ |
+| **Trend Radar** | 哪些话题 / 搜索信号正在变化？ |
+| **Consumer Voice** | 消费者具体在说什么？原始证据在哪里？ |
+| **Competitors** | 竞品在卖什么，消费者又如何评价？ |
+| **Opportunity Board** | 哪些需求值得优先验证？下一步产品和 GTM 动作是什么？ |
+| **Ask InsightFlow** | 基于已有证据继续追问，而不是脱离数据自由生成 |
+
+---
+
+## Portfolio Cases
 
 ### Magnetic Power Bank · US / AU
-A two-period evidence snapshot focused on portability, thermal stability, device fit and GTM proof points. The app deliberately blocks US-vs-AU consumer-preference claims because the saved consumer voice is not geographically comparable.
+
+首个通用品类案例，关注便携、发热、设备适配、磁吸体验与购买取舍。
+
+系统会主动限制不可靠的跨市场结论：当 US / AU 的消费者证据不具备可比性时，不会强行输出“哪个国家更喜欢什么”。
 
 ### Insta360 X6 · Launch Intelligence
-A target-company application showing the same framework in a different category. The case asks whether creator workflow — record → reframe → export → share — can become a stronger moat as hardware specs converge.
 
-## Research integrity rules
+面向目标公司的定制研究案例：在硬件参数逐渐接近的情况下，验证 **record → reframe → export → share** 的创作者工作流是否能成为更强的差异化价值。
 
-- no synthetic-review fallback
-- review count is never presented as unit sales
-- GLOBAL consumer evidence is not reassigned to a country
-- Google Trends indices are not treated as cross-country market size
-- opportunity scores prioritize validation; they do not estimate TAM / sales / PMF
-- public recruiter mode hides connectors and blocks paid / secret-consuming actions
+---
 
-## Local analyst mode
+## 数据来源
 
-Windows: double-click `START_WINDOWS.bat` or run:
+### 可直接采集
+
+- Google Shopping
+- Walmart Reviews
+- YouTube 视频 / 评论
+- Google Trends
+- Google Discussions & Forums 中的公开社区讨论信号
+
+### 可导入
+
+CSV / JSON 可以接入合规导出的：
+
+- TikTok / Instagram
+- Brandwatch / Sprinklr 等 Social Listening
+- 问卷
+- CRM / 客服记录
+- 其他评论或研究数据集
+
+---
+
+## 研究边界
+
+这个项目刻意保留了一些“不能直接下结论”的约束：
+
+- 不使用合成评论作为真实消费者证据
+- Review Count 不等于销量
+- GLOBAL 评论不会被强行归属到某个国家
+- Google Trends 指数不等于市场规模
+- 机会优先级用于**决定先验证什么**，不是 TAM / Sales / PMF 预测
+- 跨市场消费者偏好只有在证据真正可比时才允许比较
+
+---
+
+## 两种使用模式
+
+### Public Recruiter Mode
+
+用于公开作品集展示：
+
+- 不暴露 API Key
+- 不消耗项目 Owner 的付费模型 / 搜索额度
+- 使用已保存的真实案例证据
+- 可查看完整研究流程与证据链
+
+### Local Analyst Mode
+
+本地模式可连接：
+
+- SerpAPI
+- OpenAI-compatible LLM / Sub2API
+- CSV / JSON 外部证据
+
+---
+
+## 本地运行
 
 ```powershell
 py -m venv .venv
@@ -87,34 +179,30 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Local mode can use:
-
-- SerpAPI for structured live collection
-- any OpenAI-compatible LLM / Sub2API endpoint
-- CSV / JSON evidence import
-
-## Railway deployment
-
-The repository contains `railway.toml` and a checked deployment flow.
-
-1. Run `DEPLOY_LIVE_WEBSITE.bat`
-2. It creates a normal commit on top of current `main` (no force push)
-3. Railway redeploys automatically
-4. `VERIFY_LIVE_WEBSITE.ps1` checks the complete v1.6 website, bilingual Ask, demo evidence, market guardrail and public-mode secret protection
-5. Put the URL on a resume only after it prints `PASS`
-
-## Tests
+运行测试：
 
 ```bash
 python -m pytest -q
 node --check static/app.js
 ```
 
-Current final build: **v1.6.0**
+---
 
+## 这个项目想证明什么
 
-## InsightFlow 2.1 polish
+对我来说，InsightFlow 不是一个“AI 功能展示”，而是一次真实运营问题的产品化尝试：
 
-- Evidence Editorial motion layer with scroll progress, evidence-stage parallax, scroll-stack choreography and refined workspace micro-interactions.
-- Objective-aware community query expansion in Standard/Deep research to improve real discussion coverage without fragile direct scraping.
-- Public recruiter demo still spends zero owner API quota.
+> **如何把分散、重复、依赖经验的消费者研究，变成一套有证据、有边界、能指导下一步行动的流程。**
+
+如果你是 Recruiter / Hiring Manager，可以重点看：
+
+1. 我如何定义业务问题；
+2. 我如何把消费者声音转成结构化判断；
+3. 我如何区分证据、洞察和假设；
+4. 我如何把洞察继续连接到 Product / GTM Action。
+
+---
+
+## License / Disclaimer
+
+InsightFlow 用于探索性消费者研究、竞品框架、概念优先级和营销假设，不替代代表性市场调研、销量预测或正式 PMF 验证。
