@@ -9,11 +9,11 @@ test('paired comparison keeps width constant and computes explicit phone totals'
  assert.throws(()=>totals('other'));
 });
 test('sources have unique identifiers, bilingual limits and HTTPS provenance',()=>{
- assert.equal(new Set(sources.map(s=>s.id)).size,15);
+ assert.equal(new Set(sources.map(s=>s.id)).size,30);
  for(const s of sources){assert.equal(new URL(s.url).protocol,'https:');assert.ok(s.limits.zh&&s.limits.en&&s.summary.zh&&s.summary.en)}
- assert.equal(sources.filter(s=>s.type==='discussion').length,6);
- assert.deepEqual({pages:corpus.sourcePages,statements:corpus.consumerStatements,products:corpus.productSnapshots},{pages:15,statements:19,products:8});
- assert.equal(topicStats[0].count,9);
+ assert.equal(sources.filter(s=>s.type==='discussion').length,21);
+ assert.deepEqual({pages:corpus.sourcePages,statements:corpus.consumerStatements,products:corpus.productSnapshots},{pages:30,statements:67,products:8});
+ assert.equal(topicStats[0].count,29);
  assert.ok(topicStats.every(x=>x.share<=100&&['A','B','C'].includes(x.strength)));
 });
 test('invalid local records do not become research observations',()=>{
@@ -26,3 +26,4 @@ test('CSV escapes quotes and guards spreadsheet formula injection',()=>{
  assert.equal(csvCell('=1+1'),'"\'=1+1"');
  assert.equal(csvCell('line\nnext'),'"line\nnext"');
 });
+
