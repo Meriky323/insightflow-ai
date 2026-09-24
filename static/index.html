@@ -8,6 +8,7 @@
 <title>InsightFlow AI · Consumer & GTM Intelligence</title>
 <link rel="stylesheet" href="/styles.css"/>
 <link rel="stylesheet" href="/polish-v21.css"/>
+<link rel="stylesheet" href="/editorial.css"/>
 </head>
 <body><div class="ambient-grain" aria-hidden="true"></div><div class="cursor-aura" aria-hidden="true"></div>
 <div id="portfolioView" class="portfolio-view">
@@ -42,7 +43,7 @@
         </div>
       </div>
       <div class="hero-signal-stage" data-reveal data-delay="120" aria-label="Evidence to decision visualization">
-        <div class="stage-toolbar"><span>RESEARCH WORKFLOW</span><span class="stage-live"><i></i> EVIDENCE FIRST</span></div>
+        <div class="stage-toolbar"><span>SAVED CASE · EVIDENCE THREAD</span><span class="stage-live"><i></i> EVIDENCE FIRST</span></div>
         <svg class="evidence-map" viewBox="0 0 720 520" role="img" aria-label="Evidence thread visualization">
           <defs>
             <linearGradient id="threadGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b6cff"/><stop offset="1" stop-color="#22b8a7"/></linearGradient>
@@ -55,9 +56,9 @@
           <path class="thread decision-thread" d="M405 260 C520 260 535 158 616 158"/>
           <path class="thread decision-thread" d="M405 260 C520 260 535 360 616 360"/>
           <g class="source-node" transform="translate(36 70)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Community</text><text class="sub" x="62" y="38">Reddit / forums</text></g>
-          <g class="source-node" transform="translate(36 168)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Commerce</text><text class="sub" x="62" y="38">Walmart / reviews</text></g>
-          <g class="source-node" transform="translate(36 278)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Content</text><text class="sub" x="62" y="38">YouTube comments</text></g>
-          <g class="source-node" transform="translate(36 383)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Search</text><text class="sub" x="62" y="38">Google Trends</text></g>
+          <g class="source-node" transform="translate(36 168)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Commerce</text><text class="sub" x="62" y="38">ESR review summaries</text></g>
+          <g class="source-node" transform="translate(36 278)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Product facts</text><text class="sub" x="62" y="38">Official product pages</text></g>
+          <g class="source-node" transform="translate(36 383)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Baseline</text><text class="sub" x="62" y="38">14 earlier source summaries</text></g>
           <g class="insight-node" transform="translate(326 215)" filter="url(#softGlow)"><rect width="158" height="90" rx="24"/><text x="79" y="37" text-anchor="middle">PORTABILITY</text><text class="sub" x="79" y="60" text-anchor="middle">9 rows · 2 sources</text></g>
           <g class="decision-node" transform="translate(548 112)"><rect width="150" height="92" rx="20"/><text x="18" y="28">PRODUCT</text><text class="sub" x="18" y="52">Reduce attached</text><text class="sub" x="18" y="69">footprint + heat</text></g>
           <g class="decision-node" transform="translate(548 314)"><rect width="150" height="92" rx="20"/><text x="18" y="28">GTM</text><text class="sub" x="18" y="52">Prove one-hand</text><text class="sub" x="18" y="69">use in context</text></g>
@@ -207,7 +208,7 @@
       </section>
     </main>
   </div>
-  <button class="ask-fab" id="askGlobal">✦ <span data-i18n="askInsightFlow">Ask InsightFlow</span></button>
+  <button class="ask-fab" id="askGlobal">↗ <span data-i18n="askInsightFlow">Ask InsightFlow</span></button>
 </div>
 
 <div class="popover hidden" id="toolsMenu"><button id="newResearch" data-i18n="newResearch">＋ New research</button><button id="historyBtn" data-i18n="recentResearch">↻ Recent research</button><button id="settingsBtn" data-i18n="connections">⚙ Connections</button></div>
@@ -246,7 +247,7 @@
 
 
 <div class="evidence-drawer" id="evidenceDrawer" aria-hidden="true"><div class="drawer-backdrop" data-drawer-close></div><aside class="drawer-panel"><div class="drawer-head"><div><span class="eyebrow">EVIDENCE THREAD</span><h2 id="drawerTopic">—</h2><p id="drawerMeta">—</p></div><button class="modal-close" id="drawerClose" aria-label="Close">×</button></div><div class="drawer-timeline" id="drawerEvidence"></div><div class="drawer-footer"><button class="button button-dark full" id="drawerVoiceBtn">Open Consumer Voice →</button></div></aside></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/app.js"></script>
 <script src="/motion.js"></script>
 <script src="/polish-v21.js"></script>

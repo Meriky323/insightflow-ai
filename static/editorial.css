@@ -1,0 +1,32 @@
+/* Research Desk: warm paper, ink, restrained terracotta evidence threads. */
+:root {
+ --paper:#f4f1ea;--surface:#fcfaf5;--ink:#242822;--signal:#a3472f;--signal-2:#bd644a;
+ --if-blue:#a3472f;--if-blue-2:#bd644a;--if-cyan:#67806b;--mint:#67806b;
+ --radius-xs:4px;--radius-sm:6px;--radius:10px;--radius-lg:12px;--radius-xl:16px;
+ --type-display:clamp(40px,5.1vw,76px);--type-h1:36px;--type-h2:28px;--type-h3:21px;
+ --type-body:16px;--type-caption:13px;--type-label:11px;
+ --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--space-8:32px;
+ --motion-fast:160ms;--motion-panel:240ms;--elevation-drawer:0 8px 40px #24282226;
+}
+.cursor-aura,.portfolio-view::after,.ambient-grain{display:none}
+.hero-v2 h1{font-size:var(--type-display);line-height:1.07;letter-spacing:-.045em}
+html[lang=zh] .hero-v2 h1{font-size:clamp(36px,4.2vw,64px);line-height:1.22;letter-spacing:-.035em;font-weight:700}
+html[lang=zh] .hero-v2 h1 em{font-family:var(--sans);font-style:normal}
+.hero-v2 h1 em{color:var(--signal)}
+.hero-v2 h1 em::after{background:var(--signal);height:2px}
+.hero-v2-lede{font-size:16px;line-height:1.8;max-width:36em}
+.hero-signal-stage{border-radius:12px;background:#252c29;box-shadow:none;transform:none!important}
+.hero-signal-stage::before,.hero-signal-stage::after{display:none}
+.insight-node{filter:none}.insight-node rect{fill:#b45c43;stroke:#cc8069}
+.thread{stroke:#a5b1a2!important}.decision-thread{stroke:#ca8067!important}
+.traveler{fill:#d29b74}.source-node circle{fill:#303b34;stroke:#768774}
+.decision-node rect{fill:#303b34;stroke:#768774}
+.stage-live i,.pulse-dot{background:var(--signal);box-shadow:none}
+.button{border-radius:6px}.button-primary,.wordmark .mark{box-shadow:none}
+.panel,.action-card,.method-card,.story-step{box-shadow:none;border-radius:8px}
+.case-card{border-radius:10px}.drawer-panel{box-shadow:var(--elevation-drawer)}
+.provenance-note{padding:12px 16px;border-left:2px solid var(--signal);background:#a3472f08;color:#626157;font-size:13px;line-height:1.7;margin:16px 0}
+.evidence-item p,.review-card p{line-height:1.75}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--signal);outline-offset:4px}
+@media(max-width:768px){.hero-v2 h1,html[lang=zh] .hero-v2 h1{font-size:clamp(34px,8.5vw,52px);line-height:1.18}.hero-signal-stage{min-height:0}.provenance-note{font-size:12px}.site-nav{padding-inline:16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.traveler{display:none}}
