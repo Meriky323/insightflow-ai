@@ -10,3 +10,9 @@ data/cache/
 .DS_Store
 LIVE_CHECK_RESULT.json
 LIVE_CHECK_RESULT.txt
+node_modules/
+.wrangler/
+cloudflare/public/
+cloudflare/snapshot.json
+cloudflare/worker-built.mjs
+cloudflare/insightflow-pages.zip

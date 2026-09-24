@@ -4,6 +4,8 @@
 
 # InsightFlow AI
 
+**线上演示：[insightflow-ai.pages.dev](https://insightflow-ai.pages.dev/)**
+
 ### 把分散的市场信号，变成可追溯的消费者洞察与行动建议
 
 **Evidence-first Consumer & GTM Intelligence**
@@ -15,6 +17,8 @@
 ---
 
 ## 为什么做这个项目
+
+> Cloudflare 迁移：公开招聘演示已新增独立的只读部署方案，保留 Python 本地分析端。构建、部署与数据边界见 [Cloudflare 部署说明](docs/CLOUDFLARE_MIGRATION.md)。旧 Railway 地址不再作为目标部署。
 
 做海外新品调研、选品或内容策略时，常见的问题不是“找不到信息”，而是：
 

@@ -1,3 +1,7 @@
+**Live demo: [insightflow-ai.pages.dev](https://insightflow-ai.pages.dev/)**
+
+Cloudflare public snapshot + Python local analyst. See [deployment and boundaries](docs/CLOUDFLARE_MIGRATION.md).
+
 <sub>🌐 <a href="README.md">中文</a> · <b>English</b></sub>
 
 <div align="center">
