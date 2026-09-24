@@ -30,3 +30,7 @@ Keep using `START_WINDOWS.bat` or `python -m uvicorn app.main:app --host 127.0.0
 - SerpAPI live collection was verified separately (28 products, 20 comments, 105 trend points; some sources returned partial coverage). At the owner’s request, Sub2API remains an optional local configuration entry only; live model generation is outside this delivery scope. Offline tests do not prove model connectivity.
 
 References: [Pages Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/), [Advanced Mode](https://developers.cloudflare.com/pages/functions/advanced-mode/).
+
+## Production domain
+
+The public URL is https://insightflow.meriky.online/. DNSPod hosts a CNAME named insightflow pointing to insightflow-ai.pages.dev (TTL 600). The Pages custom domain is Active with SSL enabled. The existing apex and www records remain unchanged. The default pages.dev address remains a fallback. Domestic network reachability can vary; custom-domain activation alone is not evidence of availability on every ISP.

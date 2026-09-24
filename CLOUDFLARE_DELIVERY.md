@@ -1,6 +1,6 @@
 # InsightFlow AI — Cloudflare 迁移与研究能力验收
 
-验收日期：2026-09-24。线上地址：https://insightflow-ai.pages.dev/
+验收日期：2026-09-24。线上地址：https://insightflow.meriky.online/
 
 公开演示已部署到 Cloudflare Pages，运行独立只读 API，不再依赖 Railway。原 Railway 子域名属于 Railway，不能在 Cloudflare 接管；简历应换成上述地址。
 

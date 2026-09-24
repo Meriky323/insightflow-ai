@@ -4,7 +4,7 @@
 
 # InsightFlow AI
 
-**线上演示：[insightflow-ai.pages.dev](https://insightflow-ai.pages.dev/)**
+**线上演示：[insightflow.meriky.online](https://insightflow.meriky.online/)**
 
 ### 把分散的市场信号，变成可追溯的消费者洞察与行动建议
 
