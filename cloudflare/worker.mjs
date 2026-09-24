@@ -5,6 +5,15 @@ const json = (value,status=200) => new Response(JSON.stringify(value),{status,he
 const fail = (message,status) => json({detail:message},status);
 const topics = row => {try{return JSON.parse(row.topics_json||'[]')}catch{return []}};
 
+function upgradeSnapshot(source) {
+  const snapshot=structuredClone(source);
+  if(Number(snapshot.research?.id)!==2)return snapshot;
+  const meta={...(snapshot.research.decision?.demo_meta||{}),snapshot_date:'2026-09-24',business_question:'Why do people still struggle to choose after reading the 5K and 10K specifications, and what should product, merchandising and user operations change?',business_question_zh:'用户看完 5K 和 10K 的参数后为什么仍然不会选？产品、详情页和用户运营分别应该改变什么？',executive_recommendation:'Put device fit before capacity: check the phone and case, identify the usage job, then explain the capacity, depth and mass tradeoff. Treat width, weight and fit as separate facts.',executive_recommendation_zh:'把选择顺序改成“设备与手机壳 → 使用任务 → 容量代价”；分别说明宽度、重量和适配，不再用“超薄”概括全部便携性。',decision_principle:'Use consumer comments to find recurring friction, official specifications to verify facts, and product behavior to decide what changes.',decision_principle_zh:'用消费者评论发现反复出现的麻烦，用官方规格核对事实，再决定产品、页面与运营分别改变什么。',corpus:'30 source pages · 67 coded signals · 8 product snapshots · 18 detailed workspace examples'};
+  snapshot.research={...snapshot.research,message:'Portfolio case 3.1 · 30 source pages · 67 coded signals · 18 detailed workspace examples',status_message:'30 source pages · 67 coded signals · 18 detailed workspace examples',decision:{...(snapshot.research.decision||{}),demo_meta:meta}};
+  if(snapshot.summary){snapshot.summary.research={...(snapshot.summary.research||{}),...snapshot.research};const lead=snapshot.summary.opportunities?.find(x=>x.decision);if(lead)lead.decision={insight:'Capacity is not the first decision layer; device fit and usage job are.',product_action:'Separate width, weight, case and camera fit before considering a hardware redesign.',gtm_action:'Rebuild the product page as device check → usage job → capacity tradeoff.',next_validation:'Test whether shoppers choose faster and explain their choice more accurately with the three-step flow.'}}
+  return snapshot;
+}
+
 export function answer(question, snapshot, language='en') {
   const zh=language==='zh', q=question.toLowerCase();
   const summary=snapshot.summary;
@@ -40,7 +49,7 @@ export default {async fetch(request,env) {
   if(['/api/settings','/api/settings/clear','/api/connections/test','/api/research'].includes(path)||path.endsWith('/import')) return fail('Public recruiter mode is read-only. Run Local Analyst Mode for private research and connectors.',403);
   const match=path.match(/^\/api\/research\/(\d+)(?:\/(.*))?$/);
   if(!match||!data.snapshots[match[1]]) return fail('research not found',404);
-  const snapshot=data.snapshots[match[1]], resource=match[2]||'';
+  const snapshot=upgradeSnapshot(data.snapshots[match[1]]), resource=match[2]||'';
   if(resource==='ask' && request.method==='POST') {
     if(Number(request.headers.get('content-length'))>8192) return fail('Request too large',413);
     let body;try {const raw=await request.text();if(raw.length>8192)return fail('Request too large',413);body=JSON.parse(raw)}catch{return fail('Invalid JSON',400)}
