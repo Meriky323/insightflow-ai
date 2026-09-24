@@ -22,7 +22,8 @@
     </nav>
     <div class="nav-actions">
       <button class="lang-switch" data-lang-toggle aria-label="Switch language">中文</button>
-      <button class="button button-dark" id="navDemoBtn" data-i18n="openDemo">Open demo</button>
+      <a class="button button-secondary nav-report-cta" href="/reports.html" data-i18n="readReports">Read full reports</a>
+      <button class="button button-dark" id="navDemoBtn" data-i18n="openWorkspace">Open decision workspace →</button>
     </div>
   </header>
 
@@ -33,12 +34,13 @@
         <h1 data-i18n-html="heroTitle">Turn fragmented consumer signals into <em>evidence-backed</em> GTM decisions.</h1>
         <p class="hero-v2-lede" data-i18n="heroLede">A portfolio-grade research system that connects market signals, consumer voice and competitor evidence — then converts them into Product Action, GTM Action and Next Validation.</p>
         <div class="hero-actions">
-          <button class="button button-primary button-lg magnetic" id="heroDemoBtn" data-i18n="exploreFlagship">Explore flagship case →</button>
-          <a class="button button-quiet button-lg" href="/case-study.html" target="_blank" rel="noopener" data-i18n="readCase">Read case study ↗</a>
+          <a class="button button-primary button-lg magnetic" href="/reports.html" data-i18n="readReports">Read full reports →</a>
+          <button class="button button-quiet button-lg" id="heroDemoBtn" data-i18n="openWorkspace">Open decision workspace →</button>
         </div>
         <div class="hero-proof-inline">
-          <span><b>18</b><small data-i18n="metricSignals">current case evidence summaries</small></span>
+          <span><b>67</b><small data-i18n="metricSignals">coded consumer signals</small></span>
           <span><b>8</b><small data-i18n="metricProducts">competitor / retail signals</small></span>
+          <span><b>30</b><small data-i18n="metricSources">traceable source pages</small></span>
           <span><b>0</b><small data-i18n="metricKeys">API keys required for recruiter demo</small></span>
         </div>
       </div>
@@ -59,9 +61,9 @@
           <g class="source-node" transform="translate(36 168)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Commerce</text><text class="sub" x="62" y="38">ESR review summaries</text></g>
           <g class="source-node" transform="translate(36 278)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Product facts</text><text class="sub" x="62" y="38">Official product pages</text></g>
           <g class="source-node" transform="translate(36 383)"><circle cx="30" cy="22" r="22"/><text x="62" y="18">Baseline</text><text class="sub" x="62" y="38">14 earlier source summaries</text></g>
-          <g class="insight-node" transform="translate(326 215)" filter="url(#softGlow)"><rect width="158" height="90" rx="24"/><text x="79" y="37" text-anchor="middle">PORTABILITY</text><text class="sub" x="79" y="60" text-anchor="middle">9 rows · 2 sources</text></g>
-          <g class="decision-node" transform="translate(548 112)"><rect width="150" height="92" rx="20"/><text x="18" y="28">PRODUCT</text><text class="sub" x="18" y="52">Reduce attached</text><text class="sub" x="18" y="69">footprint + heat</text></g>
-          <g class="decision-node" transform="translate(548 314)"><rect width="150" height="92" rx="20"/><text x="18" y="28">GTM</text><text class="sub" x="18" y="52">Prove one-hand</text><text class="sub" x="18" y="69">use in context</text></g>
+          <g class="insight-node" transform="translate(326 215)" filter="url(#softGlow)"><rect width="158" height="90" rx="24"/><text x="79" y="37" text-anchor="middle">FIT FIRST</text><text class="sub" x="79" y="60" text-anchor="middle">67 signals · 21 pages</text></g>
+          <g class="decision-node" transform="translate(548 112)"><rect width="150" height="92" rx="20"/><text x="18" y="28">PRODUCT</text><text class="sub" x="18" y="52">Explain width,</text><text class="sub" x="18" y="69">weight + fit</text></g>
+          <g class="decision-node" transform="translate(548 314)"><rect width="150" height="92" rx="20"/><text x="18" y="28">GTM</text><text class="sub" x="18" y="52">Device → job →</text><text class="sub" x="18" y="69">capacity tradeoff</text></g>
           <circle class="traveler t1" r="4"><animateMotion dur="4s" repeatCount="indefinite" path="M120 92 C270 92 250 240 356 260"/></circle>
           <circle class="traveler t2" r="4"><animateMotion dur="4.6s" repeatCount="indefinite" path="M120 300 C260 300 270 270 356 260"/></circle>
           <circle class="traveler t3" r="4"><animateMotion dur="5.1s" repeatCount="indefinite" path="M120 405 C270 405 270 300 356 260"/></circle>
@@ -93,7 +95,7 @@
         </article>
         <article class="story-card spotlight-card" data-reveal>
           <div class="story-number">03</div><div><small>STRUCTURE</small><h3 data-i18n="step3Title">Structure consumer voice</h3><p data-i18n="step3Text">Extract topics, drivers, barriers, scenarios and purchase impact with auditable evidence.</p></div>
-          <div class="micro-ui topic-ui"><b>Portability & slimness</b><span>9 evidence · 2 sources</span><div><i style="width:72%"></i></div></div>
+          <div class="micro-ui topic-ui"><b>Fit before capacity</b><span>67 signals · 21 consumer pages</span><div><i style="width:82%"></i></div></div>
         </article>
         <article class="story-card story-accent spotlight-card" data-reveal>
           <div class="story-number">04</div><div><small>DECIDE</small><h3 data-i18n="step4Title">Turn signals into action</h3><p data-i18n="step4Text">Prioritize opportunities and state Product Action, GTM Action and the next validation step.</p></div>
@@ -108,7 +110,7 @@
         <div class="preview-top"><span><i></i> InsightFlow / Magnetic Power Bank</span><span>Curated case · 18 current + 14 baseline</span></div>
         <div class="preview-shell">
           <aside><b>01</b><span>Overview</span><b>02</b><span>Trend Radar</span><b>03</b><span>Consumer Voice</span><b>04</b><span>Competitors</span><b>05</b><span>Opportunities</span></aside>
-          <div class="preview-content"><small>RECOMMENDED DECISION</small><h3>Prioritize usable-in-hand slimness and thermal stability before adding more capacity.</h3><div class="preview-actions"><div><span>PRODUCT</span><b>Benchmark thickness + thermals</b></div><div><span>GTM</span><b>Lead with attached-use portability</b></div><div><span>VALIDATE</span><b>Run 5-device fit benchmark</b></div></div><div class="preview-evidence"><span>WHY</span><p><b>Portability & slimness</b> · 9 rows · 2 sources</p><button class="evidence-preview-button" id="previewDemoBtn">Trace evidence →</button></div></div>
+          <div class="preview-content"><small>RECOMMENDED DECISION</small><h3>Ask about device fit and usage job before presenting 5K / 10K capacity.</h3><div class="preview-actions"><div><span>PRODUCT</span><b>Separate width, weight and fit</b></div><div><span>GTM</span><b>Explain the capacity tradeoff</b></div><div><span>OPERATIONS</span><b>Tag fit, case, heat and expectation</b></div></div><div class="preview-evidence"><span>WHY</span><p><b>30 source pages</b> · 67 coded signals · 8 product snapshots</p><button class="evidence-preview-button" id="previewDemoBtn">Open workspace →</button></div></div>
         </div>
       </div>
     </section>
@@ -135,7 +137,7 @@
     <section class="final-cta-v2" data-reveal>
       <div class="cta-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
       <div><span class="eyebrow" data-i18n="ctaEyebrow">TRY THE PRODUCT</span><h2 data-i18n="ctaTitle">See the decision chain, not just the dashboard.</h2><p data-i18n="ctaText">The public demo uses a saved evidence snapshot, so it is fast, safe and does not consume the owner’s API quota.</p></div>
-      <button class="button button-primary button-lg magnetic" id="footerDemoBtn" data-i18n="exploreFlagship">Explore flagship case →</button>
+      <div class="final-cta-actions"><a class="button button-light button-lg magnetic" href="/reports.html" data-i18n="readReports">Read full reports →</a><button class="button button-primary button-lg magnetic" id="footerDemoBtn" data-i18n="openWorkspace">Open decision workspace →</button></div>
     </section>
   </main>
   <footer class="site-footer"><span>InsightFlow AI · Portfolio Prototype · 2026</span><a href="https://github.com/Meriky323/insightflow-ai" target="_blank" rel="noopener">GitHub ↗</a></footer>
@@ -146,6 +148,7 @@
     <div class="workspace-title-group"><button class="icon-button" id="backHome" aria-label="Back">←</button><div><span class="workspace-brand">InsightFlow AI</span><b id="workspaceTitle">Research workspace</b></div></div>
     <div class="workspace-actions">
       <span class="mode-pill" id="modePill">Portfolio demo</span>
+      <a class="button button-secondary workspace-report-link" href="/reports.html" data-i18n="readReports">Read full reports</a>
       <button class="lang-switch" data-lang-toggle>中文</button>
       <button class="button button-secondary" id="briefBtn" data-i18n="exportBrief">Export brief</button>
       <button class="button button-dark analyst-only" id="toolsBtn" data-i18n="analystTools">Analyst tools</button>
@@ -163,12 +166,14 @@
       </nav>
       <div class="sidebar-bottom">
         <button class="text-button" id="methodBtn" data-i18n="methodGuardrails">Method & guardrails</button>
-        <a class="text-button linklike" href="/case-study.html" target="_blank" rel="noopener" data-i18n="caseStudyLink">Case study ↗</a>
+        <a class="text-button linklike sidebar-report-link" href="/reports.html" data-i18n="readReports">Read full reports →</a>
+        <a class="text-button linklike" href="/#evidence" data-i18n="sourceLedger">Source ledger ↗</a>
       </div>
     </aside>
 
     <main class="workspace-main">
       <div class="research-status" id="statusBar"><div><span id="statusText">Loading research…</span><small id="statusMessage"></small></div><div class="status-progress"><i id="statusProgress"></i></div></div>
+      <section class="workspace-corpus"><div><small>CASE 01 · 2026.09</small><b data-i18n="corpusTitle">The full study behind this workspace</b><span data-i18n="corpusDetail">30 source pages · 67 coded signals · 8 product snapshots. The workspace shows 18 detailed evidence examples for interaction.</span></div><a class="button button-dark" href="/reports.html" data-i18n="readReports">Read full reports →</a></section>
 
       <section id="tab-overview" class="workspace-tab active">
         <div class="tab-heading"><div><span class="eyebrow" data-i18n="overviewEyebrow">EXECUTIVE SNAPSHOT</span><h1 id="businessQuestion">—</h1></div><span class="confidence-chip" id="confidenceChip">—</span></div>
