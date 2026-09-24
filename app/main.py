@@ -291,9 +291,11 @@ def research_trends(rid:int):
 @app.get('/api/research/{rid}/compare/{baseline_id}')
 def research_compare(rid:int,baseline_id:int):
     a=_require_research(rid);b=_require_research(baseline_id)
-    sa=summarize(db.rows_for(rid,'products'),db.rows_for(rid,'reviews'),db.rows_for(rid,'trends'),json.loads(a['markets_json']))
-    sb=summarize(db.rows_for(baseline_id,'products'),db.rows_for(baseline_id,'reviews'),db.rows_for(baseline_id,'trends'),json.loads(b['markets_json']))
-    return _summary_delta(sa,sb,_research_payload(a),_research_payload(b))
+    ar=db.rows_for(rid,'reviews');br=db.rows_for(baseline_id,'reviews')
+    common=sorted((set(x.get('source') for x in ar)&set(x.get('source') for x in br))-{None})
+    sa=summarize(db.rows_for(rid,'products'),[x for x in ar if x.get('source') in common],db.rows_for(rid,'trends'),json.loads(a['markets_json']))
+    sb=summarize(db.rows_for(baseline_id,'products'),[x for x in br if x.get('source') in common],db.rows_for(baseline_id,'trends'),json.loads(b['markets_json']))
+    return _summary_delta(sa,sb,_research_payload(a),_research_payload(b),common)
 
 
 def _retrieve_for_question(question:str,reviews:list[dict],summary:dict,limit:int=48)->list[dict]:
@@ -740,10 +742,13 @@ def _local_answer(question:str,summary:dict,reviews:list[dict],products:list[dic
         xs=products[:10];body='\n'.join(f"{i+1}. [{x.get('source')}] {x.get('title')} | price={x.get('price')} {x.get('currency') or ''} | rating={x.get('rating')} | reviews={x.get('review_count')}" for i,x in enumerate(xs))
         return ('系统不会把 review count 冒充销量。当前可展示的是商品事实/零售信号：\n'+body) if zh else ('The system never treats review count as unit sales. Available evidence is limited to product facts / retail signals:\n'+body)
 
-    if demo.get('executive_recommendation'):
-        if zh:return f"当前决策摘要：{demo['executive_recommendation']}\n\nEvidence confidence：{summary.get('evidence_confidence',{}).get('label','—')}。你可以继续问：产品先验证什么、GTM message、US vs AU 是否可比、证据哪里最弱。"
-        return f"Current decision summary: {demo['executive_recommendation']}\n\nEvidence confidence: {summary.get('evidence_confidence',{}).get('label','—')}. You can ask what product should validate first, the strongest GTM message, whether US/AU can be compared, or where evidence is weakest."
-    return (f"当前研究已收集 {summary['review_count']} 条消费者证据、{summary['product_count']} 个商品结果、{summary['trend_points']} 个趋势点。Evidence confidence: {summary['evidence_confidence']['label']}。" if zh else f"This research contains {summary['review_count']} consumer evidence rows, {summary['product_count']} product signals and {summary['trend_points']} trend points. Evidence confidence: {summary['evidence_confidence']['label']}.")
+    related_topics=[x['name'] for x in summary.get('issues',[]) if any(w in q for w in re.findall(r'[a-z]{4,}',x['name'].lower()))]
+    if related_topics:
+        evidence=[r for r in reviews if set(json.loads(r.get('topics_json') or '[]')) & set(related_topics)][:5]
+        heading='相关证据摘要（不证明因果或市场增长）：' if zh else 'Relevant evidence summaries (not proof of causality or market growth):'
+        return heading+'\n\n'+'\n\n'.join(f"[E{r.get('id')}] {r.get('source')} · {r.get('market')}\n{r.get('text')}\n{r.get('url') or ''}" for r in evidence)
+    return '证据不足。当前资料无法回答这个问题；请缩小问题范围或补充证据。' if zh else 'Evidence insufficient. The available evidence cannot answer this question; narrow its scope or add evidence.'
+
 
 
 app.mount('/',StaticFiles(directory=STATIC,html=True),name='static')

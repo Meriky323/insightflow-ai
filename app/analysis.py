@@ -5,6 +5,9 @@ import re
 from collections import Counter, defaultdict
 
 GENERIC_ISSUES = {
+    'Slimness': [r'\bslim\b', r'\bthin\b', r'轻薄', r'很薄'],
+    'Heat / thermal behavior': [r'\bheat\b', r'\bhot\b', r'thermal', r'发热', r'过热'],
+    'Magnetic stability': [r'magnet', r'磁吸'],
     'Performance / effectiveness': [r'not work', r'doesn.?t work', r'poor performance', r'slow', r'weak', r'ineffective', r'performance'],
     'Reliability / durability': [r'broken', r'broke', r'fail', r'died', r'loose', r'crack', r'durab', r'reliable', r'quality'],
     'Ease of use': [r'difficult', r'hard to use', r'confusing', r'easy to use', r'setup', r'install', r'convenient'],
@@ -102,11 +105,12 @@ def scenario(text: str) -> str | None:
 def annotate_fallback(row: dict) -> dict:
     text = (row.get('title') or '') + ' ' + (row.get('text') or '')
     sent = sentiment(text, row.get('rating'))
+    topics = [name for name, patterns in GENERIC_ISSUES.items() if _contains(text, patterns)]
     issue = _best_label(text, GENERIC_ISSUES)
     driver = _best_label(text, GENERIC_DRIVERS) if sent == 'positive' else None
     row['sentiment'] = sent
     row['issue'] = issue
-    row['topics_json'] = json.dumps([issue] if issue else [], ensure_ascii=False)
+    row['topics_json'] = json.dumps(topics, ensure_ascii=False)
     row['driver'] = driver
     row['barrier'] = issue if sent == 'negative' else None
     row['purchase_impact'] = purchase_impact(text)
@@ -254,6 +258,7 @@ def _competitor_benchmark(products: list[dict], reviews: list[dict]) -> list[dic
     for p in products:
         pid = p.get('external_id')
         linked = list(by_key.get((p.get('source'), str(pid)), [])) if pid is not None else []
+        direct = list(linked)
         title_key = re.sub(r'[^a-z0-9]+', '', (p.get('title') or '').lower())
         seller_key = re.sub(r'[^a-z0-9]+', '', (p.get('seller') or '').lower())
         # Conservative entity resolution: only link an explicit brand/name mention if it appears in title/seller.
@@ -279,8 +284,9 @@ def _competitor_benchmark(products: list[dict], reviews: list[dict]) -> list[dic
             'review_count': p.get('review_count'),
             'seller': p.get('seller'),
             'evidence_sample': len(linked),
+            'evidence_ids': [r.get('id') for r in linked if r.get('id') is not None],
             'global_evidence_sample': global_n,
-            'negative_share': round(negative * 100 / max(1, len(linked)), 1) if linked else None,
+            'negative_share': round(sum(r.get('sentiment') == 'negative' for r in direct) * 100 / len(direct), 1) if direct else None,
             'top_topics': [{'name': k, 'count': v} for k, v in topics.most_common(3)],
             'top_drivers': [{'name': k, 'count': v} for k, v in drivers.most_common(2)],
             'top_barriers': [{'name': k, 'count': v} for k, v in barriers.most_common(2)],
