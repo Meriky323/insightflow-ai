@@ -11,6 +11,11 @@ test('public API exposes only saved cases and never connector settings',async()=
   const config=await (await call('/api/config')).json();assert.equal(config.llm_base_url,'');assert.equal(config.allow_public_live_research,false);
   for(const path of ['/api/settings','/api/research',`/api/research/${rid}/import`])assert.equal((await call(path,'POST',{})).status,403);
   assert.equal((await call('/api/connections/test')).status,403);
+  const research=await (await call(`/api/research/${rid}`)).json();
+  assert.match(research.status_message,/67 coded signals/);
+  const summary=await (await call(`/api/research/${rid}/summary`)).json();
+  assert.match(summary.research.decision.demo_meta.executive_recommendation,/device fit before capacity/i);
+  assert.match(summary.opportunities.find(x=>x.decision).decision.gtm_action,/device check/);
 });
 test('review filtering, pagination, unknown fields and source boundaries',async()=>{
   const rows=await (await call(`/api/research/${rid}/reviews?limit=2`)).json();assert.equal(rows.rows.length,2);assert.ok(rows.has_more);
