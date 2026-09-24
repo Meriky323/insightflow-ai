@@ -27,6 +27,6 @@ Keep using `START_WINDOWS.bat` or `python -m uvicorn app.main:app --host 127.0.0
 - Brand mentions are discovery links, not proof that a sentiment targets every mentioned brand or model. Negative share is calculated only for direct product-linked rows.
 - GLOBAL evidence remains GLOBAL; US/AU preference comparison is blocked for this snapshot.
 - The X6 page is a separate editorial application case, not a second fully ingested live study.
-- Real SerpAPI collection and Sub2API generation require separate live verification. Offline tests do not establish these credentials or endpoints work.
+- SerpAPI live collection was verified separately (28 products, 20 comments, 105 trend points; some sources returned partial coverage). At the owner’s request, Sub2API remains an optional local configuration entry only; live model generation is outside this delivery scope. Offline tests do not prove model connectivity.
 
 References: [Pages Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/), [Advanced Mode](https://developers.cloudflare.com/pages/functions/advanced-mode/).
