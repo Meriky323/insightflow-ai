@@ -1,3 +1,25 @@
+# InsightFlow · 选购研究工作台
+
+[在线试用](https://insightflow.meriky.online/) · [研究说明](docs/CAPACITY_STUDY.md)
+
+当前首页聚焦一个问题：磁吸充电宝的 5K / 10K 产品页，怎样帮助用户理解容量、携带负担与设备适配的取舍。
+
+- **研究判断**：6 个可追溯来源、候选动作、反例和改变判断的条件。
+- **规格对照**：两款明确型号的尺寸、重量，以及加上 iPhone 16 后的厚度示意；可切换计算口径。
+- **来源记录**：搜索、分类、原文入口、证据边界及 CSV 导出。
+- **页面方案**：参数优先 / 任务优先两版交互原型，设备提示与本地评审笔记。
+- **验证记录**：可执行测试脚本、计时、观察保存、撤销移除和 CSV 导出。
+
+这是一项已完成案头整理、尚待用户测试的研究。没有编造参与者、转化提升、销量或充电实测结果。公开站的观察与笔记仅存于当前浏览器；导出研究会包含这些本地内容。
+
+旧采集与分析工作区保留在 `/analyst.html`。Sub2API 保留可选配置，不要求接入。公开部署不携带 API 密钥。
+
+验证：`node --test tests/study.test.mjs tests/worker.test.mjs`。Cloudflare 构建方法见 [部署说明](docs/CLOUDFLARE_MIGRATION.md)。
+
+---
+
+<details><summary>早期分析工具的功能与开发说明</summary>
+
 <sub>🌐 <b>中文</b> · <a href="README.en.md">English</a></sub>
 
 <div align="center">
@@ -210,3 +232,5 @@ node --check static/app.js
 ## License / Disclaimer
 
 InsightFlow 用于探索性消费者研究、竞品框架、概念优先级和营销假设，不替代代表性市场调研、销量预测或正式 PMF 验证。
+
+</details>
